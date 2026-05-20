@@ -1,0 +1,10 @@
+import { useSelector } from 'react-redux';
+
+export default function useAuth() {
+  const auth = useSelector((state) => state.auth);
+  return {
+    ...auth,
+    isAuthenticated: Boolean(auth.token),
+    role: auth.user?.role || null,
+  };
+}

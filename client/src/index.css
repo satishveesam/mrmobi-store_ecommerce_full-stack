@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbar while keeping scroll functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.shadow-soft {
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: 1 0 0;
+  --foreground: 0.145 0 0;
+  --card: 1 0 0;
+  --card-foreground: 0.145 0 0;
+  --popover: 1 0 0;
+  --popover-foreground: 0.145 0 0;
+  --primary: 0.205 0 0;
+  --primary-foreground: 0.985 0 0;
+  --secondary: 0.97 0 0;
+  --secondary-foreground: 0.205 0 0;
+  --muted: 0.97 0 0;
+  --muted-foreground: 0.556 0 0;
+  --accent: 0.97 0 0;
+  --accent-foreground: 0.205 0 0;
+  --destructive: 0.577 0.245 27.325;
+  --destructive-foreground: 0.985 0 0;
+  --border: 0.922 0 0;
+  --input: 0.922 0 0;
+  --ring: 0.708 0 0;
+
+  color: #111827;
+  background-color: #f3f4f6;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  --background: 0.145 0 0;
+  --foreground: 0.985 0 0;
+  --card: 0.205 0 0;
+  --card-foreground: 0.985 0 0;
+  --popover: 0.205 0 0;
+  --popover-foreground: 0.985 0 0;
+  --primary: 0.922 0 0;
+  --primary-foreground: 0.205 0 0;
+  --secondary: 0.269 0 0;
+  --secondary-foreground: 0.985 0 0;
+  --muted: 0.269 0 0;
+  --muted-foreground: 0.708 0 0;
+  --accent: 0.269 0 0;
+  --accent-foreground: 0.985 0 0;
+  --destructive: 0.704 0.191 22.216;
+  --destructive-foreground: 0.985 0 0;
+  --border: 1 0 0 / 10%;
+  --input: 1 0 0 / 15%;
+  --ring: 0.556 0 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Inter, ui-sans-serif, system-ui, Segoe UI, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.container-page {
+  width: min(1180px, calc(100% - 24px));
+  margin: 0 auto;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  outline: none;
+  background: #fff;
+}
+
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 14px;
+  font-weight: 700;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   ✨ ULTRA-MINIMALIST COMPACT BLACK TOAST
+   ========================================== */
+.Toastify__toast-container {
+  padding: 12px !important;
+  width: auto !important;
+  pointer-events: none !important; /* Click through empty spaces around it */
+  bottom: 80px !important; /* Position cleanly above the footer */
+}
+
+.Toastify__toast {
+  background: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.01em !important;
+  padding: 6px 12px !important;
+  min-height: auto !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+  width: max-content !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: 280px !important;
+  text-align: center !important;
+  pointer-events: auto !important;
+}
+
+/* Hide default toast icons completely */
+.Toastify__toast-icon {
+  display: none !important;
+}
+
+/* Subtle border color offsets to identify actions minimalistically */
+.Toastify__toast--success {
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+.Toastify__toast--error {
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Hide close buttons for the ultimate clean look */
+.Toastify__close-button {
+  display: none !important;
+}
+
+/* Center and form-fit Toast on all screen sizes, including mobile */
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container {
+    width: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 80px !important;
+    min-width: 200px !important;
+    max-width: 320px !important;
+    padding: 0 !important;
+  }
+  
+  .Toastify__toast {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: max-content !important;
+  }
+}
