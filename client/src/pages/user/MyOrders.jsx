@@ -65,8 +65,16 @@ export default function MyOrders() {
     }
   };
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   useEffect(() => {
     load();
+    
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return (
@@ -92,38 +100,9 @@ export default function MyOrders() {
           <p className="text-sm sm:text-base">No orders found.</p>
         </div>
       ) : (
-        <>
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto rounded-lg bg-white shadow-soft">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  {['Order ID', 'Product', 'Qty', 'Amount', 'Status', 'Address'].map((h) => (
-                    <th key={h} className="px-4 py-3 font-bold">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((o) => (
-                  <tr key={o.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3 font-bold">#{o.id}</td>
-                    <td className="px-4 py-3">{o.productName}</td>
-                    <td className="px-4 py-3">{o.quantity}</td>
-                    <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(o.totalPrice)}</td>
-                    <td className="px-4 py-3">
-                      <OrderStatusMessage status={o.status} />
-                    </td>
-                    <td className="px-4 py-3 text-xs">{o.address}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden grid gap-3">
+        isMobile ? (
+          /* Mobile Card View */
+          <div className="grid gap-3">
             {items.map((o) => (
               <div key={o.id} className="bg-white p-4 rounded-2xl shadow-soft border border-gray-100 flex flex-col gap-3">
                 {/* Header: Order ID & Status */}
@@ -169,7 +148,36 @@ export default function MyOrders() {
               </div>
             ))}
           </div>
-        </>
+        ) : (
+          /* Desktop Table View */
+          <div className="overflow-x-auto rounded-lg bg-white shadow-soft">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  {['Order ID', 'Product', 'Qty', 'Amount', 'Status', 'Address'].map((h) => (
+                    <th key={h} className="px-4 py-3 font-bold">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((o) => (
+                  <tr key={o.id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3 font-bold">#{o.id}</td>
+                    <td className="px-4 py-3">{o.productName}</td>
+                    <td className="px-4 py-3">{o.quantity}</td>
+                    <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(o.totalPrice)}</td>
+                    <td className="px-4 py-3">
+                      <OrderStatusMessage status={o.status} />
+                    </td>
+                    <td className="px-4 py-3 text-xs">{o.address}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
     </div>
   );
