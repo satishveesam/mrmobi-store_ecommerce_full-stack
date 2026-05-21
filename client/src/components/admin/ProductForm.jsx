@@ -62,27 +62,31 @@ export default function ProductForm({ selected, onSubmit, onCancel }) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
-    }
-
     setUploading(true);
     try {
-      const token = localStorage.getItem('mrmobi_token');
-      const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-      });
-      // response.data contains the list of URLs
+      const uploadedUrls = [];
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'deidbiy4i';
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'mrmobi_store';
+
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append('file', files[i]);
+        formData.append('upload_preset', uploadPreset);
+
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          formData
+        );
+        uploadedUrls.push(response.data.secure_url);
+      }
+
       setValues((prev) => ({
         ...prev,
-        images: [...(prev.images || []), ...response.data],
+        images: [...(prev.images || []), ...uploadedUrls],
       }));
     } catch (error) {
-      console.error('Image upload failed', error);
-      alert('Failed to upload images.');
+      console.error('Cloudinary upload failed', error);
+      alert('Failed to upload images to Cloudinary.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

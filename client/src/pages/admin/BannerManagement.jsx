@@ -40,24 +40,27 @@ export default function BannerManagement() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const formData = new FormData();
-    formData.append('files', files[0]); // Only need one image for banner
-
     setUploading(true);
     try {
-      const token = localStorage.getItem('mrmobi_token');
-      const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-      });
-      if (response.data && response.data.length > 0) {
-        setNewBanner({ ...newBanner, imageUrl: response.data[0] });
-        toast.success('Image uploaded successfully');
+      const cloudName = 'deidbiy4i';
+      const uploadPreset = 'mrmobi_store';
+
+      const formData = new FormData();
+      formData.append('file', files[0]);
+      formData.append('upload_preset', uploadPreset);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+
+      if (response.data && response.data.secure_url) {
+        setNewBanner({ ...newBanner, imageUrl: response.data.secure_url });
+        toast.success('Image uploaded successfully to Cloudinary');
       }
     } catch (error) {
-      console.error('Image upload failed', error);
-      toast.error('Failed to upload image');
+      console.error('Cloudinary upload failed', error);
+      toast.error('Failed to upload image to Cloudinary');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -192,7 +195,7 @@ export default function BannerManagement() {
               {uploading && <p className="text-[10px] text-emerald-600 mt-1 font-bold animate-pulse">Uploading image...</p>}
               {newBanner.imageUrl && (
                 <div className="mt-2 relative h-20 rounded-lg overflow-hidden border border-slate-150 bg-slate-50">
-                  <img src={newBanner.imageUrl.startsWith('http') ? newBanner.imageUrl : `${API_BASE_URL.replace('/api', '')}${newBanner.imageUrl}`} alt="Preview" className="h-full w-full object-contain" />
+                  <img src={newBanner.imageUrl.startsWith('http') ? newBanner.imageUrl : `${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080')}${newBanner.imageUrl}`} alt="Preview" className="h-full w-full object-contain" />
                 </div>
               )}
             </div>
