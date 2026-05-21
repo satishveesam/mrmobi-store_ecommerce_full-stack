@@ -123,30 +123,48 @@ export default function MyOrders() {
           </div>
 
           {/* Mobile Card View */}
-          <div className="md:hidden grid gap-2">
+          <div className="md:hidden grid gap-3">
             {items.map((o) => (
-              <div key={o.id} className="bg-white p-3 rounded-lg shadow-soft flex gap-3 items-center border border-gray-50">
-                <div className="bg-gray-100 h-14 w-14 rounded-md flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
-                  {productImages[o.productId] ? (
-                    <img 
-                      src={getImageUrl(productImages[o.productId])} 
-                      alt={o.productName} 
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <ShoppingBag size={20} />
-                  )}
+              <div key={o.id} className="bg-white p-4 rounded-2xl shadow-soft border border-gray-100 flex flex-col gap-3">
+                {/* Header: Order ID & Status */}
+                <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                  <span className="text-xs font-bold text-gray-500">Order ID: #{o.id}</span>
+                  <OrderStatusMessage status={o.status} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-bold text-sm text-gray-900 truncate">{o.productName}</h3>
-                    <span className="text-green-600 font-bold text-sm flex-shrink-0">{formatCurrency(o.totalPrice)}</span>
+                
+                {/* Product Details Info Row */}
+                <div className="flex gap-3 items-center">
+                  <div className="bg-gray-100 h-14 w-14 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden border border-gray-200/50">
+                    {productImages[o.productId] ? (
+                      <img 
+                        src={getImageUrl(productImages[o.productId])} 
+                        alt={o.productName} 
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=150&q=80';
+                        }}
+                      />
+                    ) : (
+                      <ShoppingBag size={20} />
+                    )}
                   </div>
-                  <div className="flex justify-between items-center mt-0.5">
-                    <p className="text-xs text-gray-500">Qty: {o.quantity} | <span className="font-bold">#{o.id}</span></p>
-                    <OrderStatusMessage status={o.status} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm text-gray-950 truncate mb-0.5">{o.productName}</h3>
+                    <p className="text-xs text-gray-500 font-medium">Quantity: {o.quantity}</p>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-0.5 truncate">{o.address}</p>
+                </div>
+
+                {/* Footer details box: Address & Pricing */}
+                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100/50">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400 leading-none mb-1">Shipping Address</p>
+                    <p className="text-[10px] text-gray-600 truncate font-semibold leading-tight">{o.address}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400 leading-none mb-1">Total Paid</p>
+                    <span className="text-green-600 font-extrabold text-sm block leading-tight">{formatCurrency(o.totalPrice)}</span>
+                  </div>
                 </div>
               </div>
             ))}
