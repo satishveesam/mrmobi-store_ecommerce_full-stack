@@ -15,7 +15,7 @@ export default function ProductManagement() {
   const [filterStock, setFilterStock] = useState('All');
   const [filterDelivery, setFilterDelivery] = useState('All');
   const dispatch = useDispatch();
-  const products = useSelector((state) => state.products.items);
+  const products = useSelector((state) => state.products.items) ?? [];
 
   useEffect(() => {
     dispatch(fetchProducts());

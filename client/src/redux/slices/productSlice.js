@@ -47,7 +47,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = Array.isArray(action.payload) ? action.payload : [];
         state.usingFallback = false;
       })
       .addCase(fetchProducts.rejected, (state) => {

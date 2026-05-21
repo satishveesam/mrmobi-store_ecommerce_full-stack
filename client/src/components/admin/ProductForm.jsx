@@ -97,10 +97,11 @@ export default function ProductForm({ selected, onSubmit, onCancel }) {
   };
 
   // Helper to resolve image URL (handling absolute vs relative uploads)
+  const BACKEND_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080');
   const getImageUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `${API_BASE_URL.replace('/api', '')}${url}`;
+    return `${BACKEND_BASE}${url}`;
   };
 
   return (
