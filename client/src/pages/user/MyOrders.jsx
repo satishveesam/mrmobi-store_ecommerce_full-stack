@@ -78,7 +78,7 @@ export default function MyOrders() {
   }, []);
 
   return (
-    <div className="container-page py-6">
+    <div className="container-page py-6 px-4 md:px-0 max-w-full overflow-hidden">
       <div className="mb-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl sm:text-2xl font-black">My Orders</h1>
@@ -102,17 +102,19 @@ export default function MyOrders() {
       ) : (
         isMobile ? (
           /* Mobile Card View */
-          <div className="grid gap-3">
+          <div className="grid gap-3 w-full max-w-full overflow-hidden">
             {items.map((o) => (
-              <div key={o.id} className="bg-white p-4 rounded-2xl shadow-soft border border-gray-100 flex flex-col gap-3">
+              <div key={o.id} className="bg-white p-4 rounded-2xl shadow-soft border border-gray-100 flex flex-col gap-3 w-full max-w-full overflow-hidden">
                 {/* Header: Order ID & Status */}
-                <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                  <span className="text-xs font-bold text-gray-500">Order ID: #{o.id}</span>
-                  <OrderStatusMessage status={o.status} />
+                <div className="flex justify-between items-center border-b border-gray-100 pb-2 w-full">
+                  <span className="text-xs font-bold text-gray-500 truncate mr-2">Order ID: #{o.id}</span>
+                  <div className="shrink-0">
+                    <OrderStatusMessage status={o.status} />
+                  </div>
                 </div>
                 
                 {/* Product Details Info Row */}
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-3 items-center w-full">
                   <div className="bg-gray-100 h-14 w-14 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden border border-gray-200/50">
                     {productImages[o.productId] ? (
                       <img 
@@ -129,16 +131,16 @@ export default function MyOrders() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm text-gray-950 truncate mb-0.5">{o.productName}</h3>
+                    <h3 className="font-bold text-sm text-gray-950 block w-full truncate mb-0.5">{o.productName}</h3>
                     <p className="text-xs text-gray-500 font-medium">Quantity: {o.quantity}</p>
                   </div>
                 </div>
 
                 {/* Footer details box: Address & Pricing */}
-                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100/50">
-                  <div className="min-w-0 flex-1 pr-2">
+                <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100/50 w-full overflow-hidden gap-2">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400 leading-none mb-1">Shipping Address</p>
-                    <p className="text-[10px] text-gray-600 truncate font-semibold leading-tight">{o.address}</p>
+                    <p className="text-[10px] text-gray-650 block w-full truncate font-semibold leading-tight">{o.address}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-[9px] uppercase tracking-wider font-bold text-gray-400 leading-none mb-1">Total Paid</p>
