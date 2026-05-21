@@ -84,6 +84,10 @@ export default function ProductDetails({ product }) {
             src={getImageUrl(selectedImage)}
             alt={product.name}
             className="h-full w-full object-cover transition-all duration-300"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80';
+            }}
           />
 
           {/* Rating box (bottom-left on image) */}
@@ -103,7 +107,15 @@ export default function ProductDetails({ product }) {
                   selectedImage === img ? 'border-green-500 shadow-md' : 'border-transparent opacity-70 hover:opacity-100'
                 }`}
               >
-                <img src={getImageUrl(img)} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                <img 
+                  src={getImageUrl(img)} 
+                  alt={`Thumbnail ${idx}`} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=150&q=80';
+                  }}
+                />
               </button>
             ))}
           </div>
