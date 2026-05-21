@@ -1,0 +1,22 @@
+# ============================================================
+#  RENDER ENVIRONMENT VARIABLES TEMPLATE
+#  Copy each KEY + VALUE into Render → Environment section
+# ============================================================
+
+DB_URL=jdbc:mysql://PASTE_AIVEN_HOST:PASTE_AIVEN_PORT/defaultdb?ssl-mode=REQUIRED&createDatabaseIfNotExist=true
+
+DB_USERNAME=PASTE_AIVEN_USERNAME
+
+DB_PASSWORD=PASTE_AIVEN_PASSWORD
+
+JWT_SECRET=PASTE_ANY_LONG_RANDOM_STRING_MIN_64_CHARACTERS
+
+ADMIN_USERNAME=ADMIN
+
+ADMIN_PASSWORD=PASTE_YOUR_ADMIN_PASSWORD
+
+MAIL_USERNAME=PASTE_YOUR_GMAIL
+
+MAIL_PASSWORD=PASTE_YOUR_GMAIL_APP_PASSWORD
+
+CORS_ORIGINS=PASTE_YOUR_VERCEL_URL,http://localhost:5173

@@ -1,0 +1,9 @@
+# ============================================================
+#  VERCEL ENVIRONMENT VARIABLE TEMPLATE
+#  Add this in Vercel → Project Settings → Environment Variables
+# ============================================================
+
+VITE_API_BASE_URL=PASTE_YOUR_RENDER_BACKEND_URL
+
+# Example:
+# VITE_API_BASE_URL=https://mrmobi-backend.onrender.com
