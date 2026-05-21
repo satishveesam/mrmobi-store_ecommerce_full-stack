@@ -44,22 +44,48 @@ export const removeFromWishlistAsync = createAsyncThunk('wishlist/removeFromWish
   }
 });
 
+const cachedWishlist = (() => {
+  try {
+    const data = localStorage.getItem('mrmobi_cached_wishlist');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+})();
+
+const cachedWishlistCount = (() => {
+  try {
+    const count = localStorage.getItem('mrmobi_cached_wishlist_count');
+    return count ? Number(count) : 0;
+  } catch (e) {
+    return 0;
+  }
+})();
+
 const wishlistSlice = createSlice({
   name: 'wishlist',
   initialState: {
-    items: [],
-    count: 0,
-    loading: false,
+    items: cachedWishlist,
+    count: cachedWishlistCount,
+    loading: cachedWishlist.length === 0,
     error: null,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchWishlist.pending, (state) => {
-        state.loading = true;
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
       })
       .addCase(fetchWishlist.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        const newItems = Array.isArray(action.payload) ? action.payload : [];
+        state.items = newItems;
+        try {
+          localStorage.setItem('mrmobi_cached_wishlist', JSON.stringify(newItems));
+        } catch (e) {
+          console.error(e);
+        }
       })
       .addCase(fetchWishlist.rejected, (state, action) => {
         state.loading = false;
@@ -67,12 +93,24 @@ const wishlistSlice = createSlice({
       })
       .addCase(fetchWishlistCount.fulfilled, (state, action) => {
         state.count = action.payload;
+        try {
+          localStorage.setItem('mrmobi_cached_wishlist_count', String(action.payload));
+        } catch (e) {
+          console.error(e);
+        }
       })
-      .addCase(addToWishlistAsync.fulfilled, (state, action) => {
+      .addCase(addToWishlistAsync.pending, (state, action) => {
         state.count += 1;
+        // Optimistically add item to wishlist items
+        const productId = action.meta.arg;
+        const exists = state.items.some(item => item.productId === productId);
+        if (!exists) {
+          state.items.push({ productId });
+        }
       })
-      .addCase(removeFromWishlistAsync.fulfilled, (state, action) => {
-        state.items = state.items.filter(item => item.productId !== action.payload);
+      .addCase(removeFromWishlistAsync.pending, (state, action) => {
+        const productId = action.meta.arg;
+        state.items = state.items.filter(item => item.productId !== productId);
         state.count = Math.max(0, state.count - 1);
       });
   },

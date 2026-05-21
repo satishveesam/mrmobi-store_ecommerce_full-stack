@@ -3,16 +3,30 @@ import { bannerService } from '../../services/bannerService';
 import Loader from './Loader';
 
 export default function SecondaryBanners() {
-  const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedBanners = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_secondary_banners');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const [banners, setBanners] = useState(cachedBanners);
+  const [loading, setLoading] = useState(cachedBanners.length === 0);
   const containerRef = useRef(null);
 
   useEffect(() => {
     const fetchBanners = async () => {
       try {
         const data = await bannerService.getAllBanners();
-        console.log("Secondary Filter:", data.filter(b => b.type === 'SECONDARY'));
-        setBanners(data.filter(b => b.type === 'SECONDARY'));
+        const secondary = data.filter(b => b.type === 'SECONDARY');
+        setBanners(secondary);
+        try {
+          localStorage.setItem('mrmobi_cached_secondary_banners', JSON.stringify(secondary));
+        } catch (e) {
+          console.error(e);
+        }
       } catch (error) {
         console.error('Failed to fetch secondary banners:', error);
       } finally {

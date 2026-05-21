@@ -4,16 +4,30 @@ import { bannerService } from '../../services/bannerService';
 import Loader from './Loader';
 
 export default function BannerCarousel() {
-  const [banners, setBanners] = useState([]);
+  const cachedBanners = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_banners');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const [banners, setBanners] = useState(cachedBanners);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cachedBanners.length === 0);
 
   useEffect(() => {
     const fetchBanners = async () => {
       try {
         const data = await bannerService.getAllBanners();
-        console.log("Loaded Banners:", data); // Debug log
-        setBanners(data.filter(b => b.type === 'MAIN' || !b.type || b.type === ''));
+        const mainBanners = data.filter(b => b.type === 'MAIN' || !b.type || b.type === '');
+        setBanners(mainBanners);
+        try {
+          localStorage.setItem('mrmobi_cached_banners', JSON.stringify(mainBanners));
+        } catch (e) {
+          console.error(e);
+        }
       } catch (error) {
         console.error('Failed to fetch banners:', error);
       } finally {
