@@ -1,0 +1,8 @@
+USE defaultdb;
+
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT NOT NULL,
+    image_url VARCHAR(1024) NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

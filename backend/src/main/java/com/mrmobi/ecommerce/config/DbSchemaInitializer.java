@@ -19,6 +19,7 @@ public class DbSchemaInitializer implements CommandLineRunner {
             // Check if product_images table exists, if not, create it
             jdbcTemplate.execute(
                 "CREATE TABLE IF NOT EXISTS product_images (" +
+                "  id INT AUTO_INCREMENT PRIMARY KEY," +
                 "  product_id BIGINT NOT NULL," +
                 "  image_url VARCHAR(1024) NOT NULL," +
                 "  FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE" +
