@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ShoppingBag, RotateCw } from 'lucide-react';
+import api from '../../services/api.js';
 import { orderService } from '../../services/orderService.js';
 import { productService } from '../../services/productService.js';
 import { formatCurrency, API_BASE_URL } from '../../utils/constants.js';
@@ -36,6 +37,48 @@ export default function MyOrders() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productImages, setProductImages] = useState({});
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [selectedProductName, setSelectedProductName] = useState('');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const handleOpenReviewModal = (productId, productName) => {
+    setSelectedProductId(productId);
+    setSelectedProductName(productName);
+    setRating(5);
+    setComment('');
+    setShowReviewModal(true);
+  };
+
+  const handleCloseReviewModal = () => {
+    setShowReviewModal(false);
+    setSelectedProductId(null);
+    setSelectedProductName('');
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!selectedProductId) return;
+
+    setSubmittingReview(true);
+    try {
+      await api.post('/reviews', {
+        productId: selectedProductId,
+        rating: Number(rating),
+        comment: comment.trim()
+      });
+      toast.success('Thank you! Your review has been submitted.');
+      handleCloseReviewModal();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || err.response?.data?.error || 'Failed to submit review. You may have already reviewed this product.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -184,6 +227,16 @@ export default function MyOrders() {
                     Cancel Order
                   </button>
                 )}
+
+                {/* Mobile Rate Item Button */}
+                {String(o.status || '').toUpperCase() === 'DELIVERED' && (
+                  <button
+                    onClick={() => handleOpenReviewModal(o.productId, o.productName)}
+                    className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-black transition active:scale-[0.98] border border-emerald-250/50"
+                  >
+                    ⭐ Rate Item
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -219,6 +272,13 @@ export default function MyOrders() {
                         >
                           Cancel
                         </button>
+                      ) : String(o.status || '').toUpperCase() === 'DELIVERED' ? (
+                        <button
+                          onClick={() => handleOpenReviewModal(o.productId, o.productName)}
+                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-black transition active:scale-95 border border-emerald-250/40"
+                        >
+                          Rate Item
+                        </button>
                       ) : (
                         <span className="text-gray-400 text-xs italic">-</span>
                       )}
@@ -229,6 +289,99 @@ export default function MyOrders() {
             </table>
           </div>
         )
+      )}
+
+      {/* Premium Review Modal Overlay */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 overflow-hidden transform scale-100 transition duration-300">
+            {/* Modal Header */}
+            <div className="bg-slate-950 p-4 text-white flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-black tracking-wider uppercase">⭐ Write Product Review</h3>
+                <p className="text-[9px] text-slate-400 font-bold mt-0.5 truncate max-w-[280px]">
+                  {selectedProductName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseReviewModal}
+                className="text-slate-400 hover:text-white transition font-black text-xs px-2 py-1 rounded-lg hover:bg-white/10"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSubmitReview} className="p-5 space-y-4">
+              {/* Star Rating Selector */}
+              <div className="space-y-1 text-center">
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                  Your Rating
+                </label>
+                <div className="flex justify-center items-center gap-2 py-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRating(val)}
+                      className={`text-2xl transition hover:scale-110 ${
+                        val <= rating ? 'text-amber-400' : 'text-slate-200 hover:text-amber-300'
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  {rating === 5 ? 'Excellent!' :
+                   rating === 4 ? 'Very Good!' :
+                   rating === 3 ? 'Good' :
+                   rating === 2 ? 'Fair' : 'Poor'}
+                </span>
+              </div>
+
+              {/* Review Comment Input */}
+              <div className="space-y-1">
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider">
+                  Share your experience (Optional)
+                </label>
+                <textarea
+                  placeholder="What did you like or dislike about the product?"
+                  rows={3}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full text-xs font-bold p-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white placeholder:text-slate-450 text-slate-800"
+                />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-2 border-t border-slate-100 flex gap-2">
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="flex-1 py-2 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {submittingReview ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    'Submit Review'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseReviewModal}
+                  className="px-4 py-2 border border-slate-250 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

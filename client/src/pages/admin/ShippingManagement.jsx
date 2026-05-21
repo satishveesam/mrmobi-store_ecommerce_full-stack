@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api.js';
+import axios from 'axios';
 import { toast } from 'react-toastify';
 import { MapPin, Trash2, Edit2, Settings, Loader2, Truck, ChevronDown, ChevronUp, Plus, BadgePercent, Sparkles, Tag } from 'lucide-react';
 import { formatCurrency } from '../../utils/constants.js';
@@ -36,6 +37,7 @@ export default function ShippingManagement() {
   // Explore Collections state
   const [adminCollections, setAdminCollections] = useState([]);
   const [savingCollections, setSavingCollections] = useState(false);
+  const [uploadingIdx, setUploadingIdx] = useState(null);
 
   // Load settings
   useEffect(() => {
@@ -187,6 +189,36 @@ export default function ShippingManagement() {
       updated[idx] = { ...updated[idx], [field]: value };
       return updated;
     });
+  };
+
+  const handleCollectionImageUpload = async (idx, e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingIdx(idx);
+    try {
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'deidbiy4i';
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'mrmobi_store';
+
+      const formData = new FormData();
+      formData.append('file', files[0]);
+      formData.append('upload_preset', uploadPreset);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      );
+
+      if (response.data && response.data.secure_url) {
+        handleAdminCollectionChange(idx, 'image', response.data.secure_url);
+        toast.success('Collection image uploaded successfully!');
+      }
+    } catch (error) {
+      console.error('Cloudinary upload failed', error);
+      toast.error('Failed to upload image to Cloudinary');
+    } finally {
+      setUploadingIdx(null);
+    }
   };
 
   const handleSaveExploreCollections = async () => {
@@ -556,15 +588,43 @@ export default function ShippingManagement() {
                         className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-800"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Image URL</label>
-                      <input
-                        type="text"
-                        placeholder="https://..."
-                        value={col.image}
-                        onChange={(e) => handleAdminCollectionChange(idx, 'image', e.target.value)}
-                        className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-850"
-                      />
+                    <div className="flex items-center gap-3 pt-1">
+                      {col.image && (
+                        <img
+                          src={col.image}
+                          alt={col.title}
+                          className="w-12 h-12 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          Collection Image
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id={`col-upload-${idx}`}
+                            className="hidden"
+                            onChange={(e) => handleCollectionImageUpload(idx, e)}
+                          />
+                          <label
+                            htmlFor={`col-upload-${idx}`}
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-dashed border-slate-300 hover:border-slate-400 rounded-xl text-[10px] font-extrabold text-slate-650 hover:bg-slate-50 cursor-pointer transition w-full animate-in fade-in"
+                          >
+                            {uploadingIdx === idx ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-650" />
+                                <span>Uploading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>📷 Choose File</span>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
