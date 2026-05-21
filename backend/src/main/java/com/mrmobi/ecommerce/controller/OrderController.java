@@ -54,4 +54,12 @@ public class OrderController {
     public Orders updateStatus(@PathVariable Long id, @RequestParam String status) {
         return orderService.updateStatus(id, status);
     }
+
+    /**
+     * User's own order cancel mapping (requires USER login).
+     */
+    @PostMapping("/{id}/cancel")
+    public Orders cancelOrder(@PathVariable Long id) {
+        return orderService.cancelOrder(id);
+    }
 }

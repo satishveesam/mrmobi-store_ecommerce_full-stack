@@ -110,4 +110,47 @@ public class OrderService {
 
         return updatedOrder;
     }
+
+    @Transactional
+    public Orders cancelOrder(Long orderId) {
+        Orders order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new SecurityException("Login required");
+        }
+        String email = auth.getName();
+        Long currentUserId = userRepository.findByEmail(email)
+                .map(u -> u.getId())
+                .orElseThrow(() -> new SecurityException("Login required"));
+
+        if (order.getUserId() == null || !order.getUserId().equals(currentUserId)) {
+            throw new SecurityException("You do not have permission to cancel this order");
+        }
+
+        if ("CANCELLED".equalsIgnoreCase(order.getStatus())) {
+            throw new IllegalArgumentException("Order is already cancelled");
+        }
+
+        java.time.Instant now = java.time.Instant.now();
+        java.time.Instant createdAt = order.getCreatedAt();
+        if (createdAt != null) {
+            long minutesElapsed = java.time.Duration.between(createdAt, now).toMinutes();
+            if (minutesElapsed > 30) {
+                throw new IllegalArgumentException("Orders can only be cancelled within 30 minutes of purchase.");
+            }
+        }
+
+        if (order.getProductId() != null) {
+            productRepository.findById(order.getProductId()).ifPresent(product -> {
+                int currentStock = product.getStock() == null ? 0 : product.getStock();
+                product.setStock(currentStock + order.getQuantity());
+                productRepository.save(product);
+            });
+        }
+
+        order.setStatus("CANCELLED");
+        return orderRepository.save(order);
+    }
 }

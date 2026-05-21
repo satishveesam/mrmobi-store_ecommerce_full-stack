@@ -14,7 +14,20 @@ export default function WishlistItemComponent({ item }) {
   };
 
   const handleAddToCart = () => {
-    dispatch(addToCartAsync({ productId: item.productId, quantity: 1 }));
+    const productPayload = {
+      id: item.productId,
+      name: item.productName,
+      price: item.price,
+      imageUrl: item.productImage,
+      category: item.category,
+      discountPercent: item.discountPercent,
+      originalPrice: item.originalPrice,
+    };
+    dispatch(addToCartAsync({ 
+      productId: item.productId, 
+      quantity: 1, 
+      product: productPayload 
+    }));
     dispatch(removeFromWishlistAsync(item.productId));
   };
 

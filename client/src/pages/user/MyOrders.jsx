@@ -67,6 +67,33 @@ export default function MyOrders() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const canCancel = (order) => {
+    if (!order.createdAt) return false;
+    const status = String(order.status || '').toUpperCase();
+    if (['CANCELLED', 'SHIPPED', 'DELIVERED'].includes(status)) return false;
+    
+    try {
+      const createdTime = new Date(order.createdAt).getTime();
+      const now = Date.now();
+      const diffMinutes = (now - createdTime) / (1000 * 60);
+      return diffMinutes >= 0 && diffMinutes <= 30;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order? Stock will be restored.')) return;
+    try {
+      await orderService.cancelOrder(orderId);
+      toast.success('Order cancelled successfully!');
+      load();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || err.response?.data?.error || 'Failed to cancel order');
+    }
+  };
+
   useEffect(() => {
     load();
     
@@ -147,6 +174,16 @@ export default function MyOrders() {
                     <span className="text-green-600 font-extrabold text-sm block leading-tight">{formatCurrency(o.totalPrice)}</span>
                   </div>
                 </div>
+
+                {/* Mobile Cancel Button */}
+                {canCancel(o) && (
+                  <button
+                    onClick={() => handleCancelOrder(o.id)}
+                    className="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-black transition active:scale-[0.98] border border-red-200/50"
+                  >
+                    Cancel Order
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -156,7 +193,7 @@ export default function MyOrders() {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  {['Order ID', 'Product', 'Qty', 'Amount', 'Status', 'Address'].map((h) => (
+                  {['Order ID', 'Product', 'Qty', 'Amount', 'Status', 'Address', 'Action'].map((h) => (
                     <th key={h} className="px-4 py-3 font-bold">
                       {h}
                     </th>
@@ -174,6 +211,18 @@ export default function MyOrders() {
                       <OrderStatusMessage status={o.status} />
                     </td>
                     <td className="px-4 py-3 text-xs">{o.address}</td>
+                    <td className="px-4 py-3">
+                      {canCancel(o) ? (
+                        <button
+                          onClick={() => handleCancelOrder(o.id)}
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-black transition active:scale-95 border border-red-200/40"
+                        >
+                          Cancel
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

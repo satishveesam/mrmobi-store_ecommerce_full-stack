@@ -6,4 +6,5 @@ export const orderService = {
   getMyOrders: () => api.get('/orders/my'),
   getDashboard: () => api.get('/admin/dashboard'),
   updateStatus: (orderId, status) => api.put(`/orders/${orderId}/status`, null, { params: { status } }),
+  cancelOrder: (orderId) => api.post(`/orders/${orderId}/cancel`),
 };
