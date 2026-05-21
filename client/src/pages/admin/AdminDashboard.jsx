@@ -9,23 +9,38 @@ import api from '../../services/api.js';
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cachedStats = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_admin_stats');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const [stats, setStats] = useState(cachedStats);
+  const [loading, setLoading] = useState(cachedStats === null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(false);
   }, []);
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (isManual = false) => {
+    if (isManual || !stats) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const { data } = await api.get('/admin/dashboard');
       if (data.error) {
         setError(data.error);
+      } else {
+        setStats(data);
+        try {
+          localStorage.setItem('mrmobi_cached_admin_stats', JSON.stringify(data));
+        } catch {}
       }
-      setStats(data);
     } catch (error) {
       console.error('Failed to fetch stats', error);
       setError('Connection to server failed. Please check if backend is running.');
@@ -56,7 +71,7 @@ export default function AdminDashboard() {
           <p className="text-[9px] sm:text-sm text-gray-500 font-bold uppercase tracking-widest mt-0.5">Real-time analytics and performance metrics.</p>
         </div>
         <button 
-          onClick={fetchStats}
+          onClick={() => fetchStats(true)}
           className="p-2 sm:p-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all text-gray-600 hover:text-green-600"
           title="Refresh Data"
         >

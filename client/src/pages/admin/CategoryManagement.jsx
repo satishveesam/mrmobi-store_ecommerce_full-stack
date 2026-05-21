@@ -57,8 +57,17 @@ const ICON_SUGGESTIONS = [
 ];
 
 export default function CategoryManagement() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedCategories = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_categories');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const [categories, setCategories] = useState(cachedCategories);
+  const [loading, setLoading] = useState(cachedCategories.length === 0);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +77,9 @@ export default function CategoryManagement() {
     try {
       const data = await categoryService.getAll();
       setCategories(data);
+      try {
+        localStorage.setItem('mrmobi_cached_categories', JSON.stringify(data));
+      } catch {}
     } catch {
       toast.error('Failed to load categories');
     } finally {

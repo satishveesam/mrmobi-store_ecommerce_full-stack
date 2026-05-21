@@ -23,12 +23,26 @@ export default function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, loading } = useSelector((state) => state.products);
-  const [announcement, setAnnouncement] = useState(null);
+  const cachedAnnouncement = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_announcement');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const [announcement, setAnnouncement] = useState(cachedAnnouncement);
 
   useEffect(() => {
     dispatch(fetchProducts());
     api.get('/products/settings/announcement')
-      .then(res => setAnnouncement(res.data))
+      .then(res => {
+        setAnnouncement(res.data);
+        try {
+          localStorage.setItem('mrmobi_cached_announcement', JSON.stringify(res.data));
+        } catch {}
+      })
       .catch(err => console.error('Failed to load announcement banner', err));
   }, [dispatch]);
 
@@ -36,9 +50,21 @@ export default function Home() {
 
   return (
     <div className="pb-12 space-y-6 md:space-y-8 animate-in fade-in duration-300">
+      {/* Hero Section */}
+      <section>
+        <div className="container-page py-2 md:py-4">
+          <BannerCarousel />
+        </div>
+      </section>
+
+      {/* Secondary Banners */}
+      <section className="container-page">
+         <SecondaryBanners />
+      </section>
+
       {/* Announcement Banner */}
       {announcement && announcement.active && (
-        <div className="container-page pt-4">
+        <div className="container-page">
           <div className={`py-2 px-4 rounded-xl text-[10px] md:text-xs font-black tracking-wide shadow-sm flex items-center justify-center gap-1.5 border transition-all ${
             announcement.theme === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-805' :
             announcement.theme === 'indigo' ? 'bg-indigo-50 border-indigo-100 text-indigo-805' :
@@ -55,18 +81,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/* Hero Section */}
-      <section>
-        <div className="container-page py-2 md:py-4">
-          <BannerCarousel />
-        </div>
-      </section>
-
-      {/* Secondary Banners */}
-      <section className="container-page">
-         <SecondaryBanners />
-      </section>
 
       {/* Blue Product Strip */}
       <section className="container-page">
