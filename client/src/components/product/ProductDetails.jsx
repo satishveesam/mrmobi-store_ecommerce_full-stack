@@ -232,7 +232,7 @@ export default function ProductDetails({ product }) {
                   <button
                     disabled={product.stock <= 0}
                     className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-white border border-gray-200 text-gray-900 font-bold text-xs hover:bg-gray-50 transition-all disabled:opacity-50"
-                    onClick={() => dispatch(addToCartAsync({ productId: product.id, quantity: 1 }))}
+                    onClick={() => dispatch(addToCartAsync({ productId: product.id, quantity: 1, product }))}
                   >
                     <ShoppingCart size={16} /> Add to Cart
                   </button>
@@ -286,7 +286,7 @@ export default function ProductDetails({ product }) {
               <button
                 disabled={product.stock <= 0}
                 className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-white border border-gray-200 text-gray-900 font-bold text-xs hover:bg-gray-50 transition-all disabled:opacity-50"
-                onClick={() => dispatch(addToCartAsync({ productId: product.id, quantity: 1 }))}
+                onClick={() => dispatch(addToCartAsync({ productId: product.id, quantity: 1, product }))}
               >
                 <ShoppingCart size={12} /> Add
               </button>

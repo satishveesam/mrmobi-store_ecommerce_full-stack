@@ -16,13 +16,16 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWi
   }
 });
 
-export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
+export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ productId, quantity, product }, { dispatch, rejectWithValue }) => {
   try {
-    await cartService.addToCart(productId, quantity);
     toast.success('Product added to cart', { toastId: 'cart-add-success' });
+    await cartService.addToCart(productId, quantity);
+    // Fetch fresh cart from server in background to sync
     dispatch(fetchCart());
     return { productId, quantity };
   } catch (error) {
+    // If backend fail, fetch fresh cart to revert local state
+    dispatch(fetchCart());
     return rejectWithValue(error.response?.data || 'Failed to add to cart');
   }
 });
@@ -30,19 +33,20 @@ export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ produc
 export const updateQuantityAsync = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
   try {
     await cartService.updateQuantity(productId, quantity);
-    dispatch(fetchCart());
     return { productId, quantity };
   } catch (error) {
+    dispatch(fetchCart());
     return rejectWithValue(error.response?.data || 'Failed to update quantity');
   }
 });
 
 export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async (productId, { dispatch, rejectWithValue }) => {
   try {
+    toast.success('Item removed from cart', { toastId: 'cart-remove-success' });
     await cartService.removeFromCart(productId);
-    dispatch(fetchCart());
     return productId;
   } catch (error) {
+    dispatch(fetchCart());
     return rejectWithValue(error.response?.data || 'Failed to remove from cart');
   }
 });
@@ -50,9 +54,9 @@ export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async
 export const clearCartAsync = createAsyncThunk('cart/clearCart', async (_, { dispatch, rejectWithValue }) => {
   try {
     await cartService.clearCart();
-    dispatch(fetchCart());
     return null;
   } catch (error) {
+    dispatch(fetchCart());
     return rejectWithValue(error.response?.data || 'Failed to clear cart');
   }
 });
@@ -72,7 +76,9 @@ const cartSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchCart.pending, (state) => {
-        state.loading = true;
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
@@ -82,18 +88,32 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(clearCartAsync.fulfilled, (state) => {
+      .addCase(clearCartAsync.pending, (state) => {
         state.items = [];
       })
-      .addCase(addToCartAsync.fulfilled, (state, action) => {
-        // Optimistic update could go here, but for now we rely on fetchCart or explicit actions
+      .addCase(addToCartAsync.pending, (state, action) => {
+        const { product, quantity } = action.meta.arg;
+        if (product) {
+          const existingItem = state.items.find(i => i.id === product.id);
+          if (existingItem) {
+            existingItem.quantity += quantity;
+          } else {
+            state.items.push({
+              ...product,
+              id: product.id,
+              quantity
+            });
+          }
+        }
       })
-      .addCase(updateQuantityAsync.fulfilled, (state, action) => {
-        const item = state.items.find(i => i.id === action.payload.productId);
-        if (item) item.quantity = action.payload.quantity;
+      .addCase(updateQuantityAsync.pending, (state, action) => {
+        const { productId, quantity } = action.meta.arg;
+        const item = state.items.find(i => i.id === productId);
+        if (item) item.quantity = quantity;
       })
-      .addCase(removeFromCartAsync.fulfilled, (state, action) => {
-        state.items = state.items.filter(i => i.id !== action.payload);
+      .addCase(removeFromCartAsync.pending, (state, action) => {
+        const productId = action.meta.arg;
+        state.items = state.items.filter(i => i.id !== productId);
       });
   },
 });

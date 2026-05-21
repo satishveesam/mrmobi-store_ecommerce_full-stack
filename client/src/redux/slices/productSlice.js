@@ -30,11 +30,20 @@ export const removeProduct = createAsyncThunk('products/removeProduct', async (i
   }
 });
 
+const cachedItems = (() => {
+  try {
+    const data = localStorage.getItem('mrmobi_cached_products');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+})();
+
 const productSlice = createSlice({
   name: 'products',
   initialState: {
-    items: [],
-    loading: false,
+    items: cachedItems,
+    loading: cachedItems.length === 0,
     error: null,
     usingFallback: false,
   },
@@ -42,18 +51,28 @@ const productSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : [];
+        const newItems = Array.isArray(action.payload) ? action.payload : [];
+        state.items = newItems;
         state.usingFallback = false;
+        try {
+          localStorage.setItem('mrmobi_cached_products', JSON.stringify(newItems));
+        } catch (e) {
+          console.error(e);
+        }
       })
       .addCase(fetchProducts.rejected, (state) => {
         state.loading = false;
-        state.items = fallbackProducts;
-        state.usingFallback = true;
+        if (state.items.length === 0) {
+          state.items = fallbackProducts;
+          state.usingFallback = true;
+        }
       })
       .addCase(saveProduct.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);

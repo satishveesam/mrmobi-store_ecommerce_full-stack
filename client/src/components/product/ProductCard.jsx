@@ -60,7 +60,7 @@ export default function ProductCard({ product }) {
       navigate('/login');
       return;
     }
-    dispatch(addToCartAsync({ productId: product.id, quantity: 1 }));
+    dispatch(addToCartAsync({ productId: product.id, quantity: 1, product }));
   };
 
   const original = product.originalPrice ?? product.mrpPrice ?? null;
