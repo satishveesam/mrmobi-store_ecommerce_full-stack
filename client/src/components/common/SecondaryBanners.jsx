@@ -94,7 +94,7 @@ export default function SecondaryBanners() {
         <a 
           key={banner.id} 
           href={banner.targetUrl || '#'} 
-          className="relative min-w-[240px] sm:min-w-[260px] md:min-w-0 overflow-hidden rounded-xl group block h-[90px] sm:h-[120px] md:h-auto md:aspect-video shadow-sm snap-center shrink-0 md:shrink"
+          className="relative w-[230px] sm:w-[265px] md:w-auto aspect-[2.7/1] md:aspect-video overflow-hidden rounded-xl group block shadow-sm snap-center shrink-0 md:shrink"
         >
           <img 
             src={banner.imageUrl} 

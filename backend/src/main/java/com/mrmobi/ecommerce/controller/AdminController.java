@@ -241,4 +241,39 @@ public class AdminController {
             return errorResponse;
         }
     }
+
+    @PostMapping("/settings/explore-collections")
+    public List<java.util.Map<String, Object>> updateExploreCollections(@org.springframework.web.bind.annotation.RequestBody List<java.util.Map<String, Object>> collections) {
+        for (java.util.Map<String, Object> col : collections) {
+            Object idObj = col.get("id");
+            Object titleObj = col.get("title");
+            Object imageObj = col.get("image");
+
+            if (idObj != null) {
+                String idStr = idObj.toString();
+                String titleStr = titleObj != null ? titleObj.toString() : "";
+                String imageStr = imageObj != null ? imageObj.toString() : "";
+
+                systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + idStr + "_name", titleStr));
+                systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + idStr + "_image", imageStr));
+            }
+        }
+        
+        List<java.util.Map<String, Object>> updated = new java.util.ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            String name = systemSettingRepository.findById("explore_collection_" + i + "_name")
+                    .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
+                    .orElse("");
+            String image = systemSettingRepository.findById("explore_collection_" + i + "_image")
+                    .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
+                    .orElse("");
+
+            java.util.Map<String, Object> c = new java.util.HashMap<>();
+            c.put("id", i);
+            c.put("title", name);
+            c.put("image", image);
+            updated.add(c);
+        }
+        return updated;
+    }
 }

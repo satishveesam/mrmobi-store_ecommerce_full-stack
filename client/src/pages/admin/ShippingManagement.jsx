@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api.js';
 import { toast } from 'react-toastify';
-import { MapPin, Trash2, Edit2, Settings, Loader2, Truck, ChevronDown, ChevronUp, Plus, BadgePercent, Sparkles } from 'lucide-react';
+import { MapPin, Trash2, Edit2, Settings, Loader2, Truck, ChevronDown, ChevronUp, Plus, BadgePercent, Sparkles, Tag } from 'lucide-react';
 import { formatCurrency } from '../../utils/constants.js';
 
 export default function ShippingManagement() {
@@ -23,6 +23,7 @@ export default function ShippingManagement() {
   // Accordion states
   const [standardExpanded, setStandardExpanded] = useState(false);
   const [announcementExpanded, setAnnouncementExpanded] = useState(false);
+  const [collectionsExpanded, setCollectionsExpanded] = useState(false);
   const [addFormExpanded, setAddFormExpanded] = useState(false);
 
   // Announcement state
@@ -32,16 +33,21 @@ export default function ShippingManagement() {
   const [announcementLink, setAnnouncementLink] = useState('');
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
 
+  // Explore Collections state
+  const [adminCollections, setAdminCollections] = useState([]);
+  const [savingCollections, setSavingCollections] = useState(false);
+
   // Load settings
   useEffect(() => {
     const loadAllSettings = async () => {
       try {
         setLoading(true);
-        const [feeRes, threshRes, locsRes, announRes] = await Promise.all([
+        const [feeRes, threshRes, locsRes, announRes, colRes] = await Promise.all([
           api.get('/products/settings/global-delivery-fee'),
           api.get('/products/settings/free-delivery-threshold'),
           api.get('/products/settings/quick-delivery-locations'),
-          api.get('/products/settings/announcement').catch(() => null)
+          api.get('/products/settings/announcement').catch(() => null),
+          api.get('/products/settings/explore-collections').catch(() => null)
         ]);
 
         setGlobalDeliveryFee(feeRes.data?.globalDeliveryFee || 0);
@@ -52,6 +58,9 @@ export default function ShippingManagement() {
           setAnnouncementText(announRes.data.text || '');
           setAnnouncementTheme(announRes.data.theme || 'emerald');
           setAnnouncementLink(announRes.data.link || '');
+        }
+        if (colRes && colRes.data) {
+          setAdminCollections(colRes.data);
         }
       } catch (err) {
         console.error('Failed to load shipping settings', err);
@@ -169,6 +178,31 @@ export default function ShippingManagement() {
       toast.error('Failed to save announcement settings.');
     } finally {
       setSavingAnnouncement(false);
+    }
+  };
+
+  const handleAdminCollectionChange = (idx, field, value) => {
+    setAdminCollections(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleSaveExploreCollections = async () => {
+    setSavingCollections(true);
+    try {
+      await api.post('/admin/settings/explore-collections', adminCollections);
+      toast.success('Explore collections saved successfully!');
+      try {
+        localStorage.setItem('mrmobi_cached_explore_collections', JSON.stringify(adminCollections));
+      } catch {}
+      setCollectionsExpanded(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save explore collections.');
+    } finally {
+      setSavingCollections(false);
     }
   };
 
@@ -480,6 +514,71 @@ export default function ShippingManagement() {
                 className="w-full sm:w-auto px-4 py-1.5 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 {savingAnnouncement ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save Announcement'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Explore Collections Card (Collapsible) */}
+      <div className="bg-white border border-slate-150 rounded-2xl shadow-sm transition-all overflow-hidden border-t-2 border-t-amber-600">
+        <button
+          type="button"
+          onClick={() => setCollectionsExpanded(!collectionsExpanded)}
+          className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50/50 transition duration-150 text-left focus:outline-none"
+        >
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-amber-600" />
+            <div>
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider leading-none">📂 Explore Collections (Homepage)</h3>
+              <p className="text-[8px] text-slate-400 font-bold mt-0.5">Customize the 4 featured collections shown on the homepage</p>
+            </div>
+          </div>
+          <span className="text-slate-400 p-1 hover:text-slate-700 transition">
+            {collectionsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </span>
+        </button>
+
+        {collectionsExpanded && (
+          <div className="p-4 border-t border-slate-100 bg-slate-50/10 animate-in slide-in-from-top-1 duration-200 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {adminCollections.map((col, idx) => (
+                <div key={col.id || idx} className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Collection {idx + 1}</span>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Collection Name (Related Category Name)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Mobiles"
+                        value={col.title}
+                        onChange={(e) => handleAdminCollectionChange(idx, 'title', e.target.value)}
+                        className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Image URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={col.image}
+                        onChange={(e) => handleAdminCollectionChange(idx, 'image', e.target.value)}
+                        className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-850"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveExploreCollections}
+                disabled={savingCollections}
+                className="w-full sm:w-auto px-4 py-1.5 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {savingCollections ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save Collections'}
               </button>
             </div>
           </div>

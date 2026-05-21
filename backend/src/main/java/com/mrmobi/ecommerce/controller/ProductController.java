@@ -102,6 +102,42 @@ public class ProductController {
         return response;
     }
 
+    @GetMapping("/settings/explore-collections")
+    public List<java.util.Map<String, Object>> getExploreCollections() {
+        List<java.util.Map<String, Object>> collections = new java.util.ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            String defaultName = "";
+            String defaultImg = "";
+            if (i == 1) {
+                defaultName = "Mobiles";
+                defaultImg = "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=700&q=80";
+            } else if (i == 2) {
+                defaultName = "Accessories";
+                defaultImg = "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=700&q=80";
+            } else if (i == 3) {
+                defaultName = "Audio";
+                defaultImg = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=80";
+            } else if (i == 4) {
+                defaultName = "Smart Watches";
+                defaultImg = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=80";
+            }
+
+            String name = systemSettingRepository.findById("explore_collection_" + i + "_name")
+                    .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
+                    .orElse(defaultName);
+            String image = systemSettingRepository.findById("explore_collection_" + i + "_image")
+                    .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
+                    .orElse(defaultImg);
+
+            java.util.Map<String, Object> col = new java.util.HashMap<>();
+            col.put("id", i);
+            col.put("title", name);
+            col.put("image", image);
+            collections.add(col);
+        }
+        return collections;
+    }
+
     @GetMapping
     public List<Product> getProducts(@RequestParam(required = false) String search) {
         return productService.getProducts(search);

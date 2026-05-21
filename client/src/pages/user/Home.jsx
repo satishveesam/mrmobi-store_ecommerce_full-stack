@@ -32,10 +32,21 @@ export default function Home() {
     }
   })();
 
+  const cachedCollections = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_explore_collections');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const [announcement, setAnnouncement] = useState(cachedAnnouncement);
+  const [collections, setCollections] = useState(cachedCollections || categories);
 
   useEffect(() => {
     dispatch(fetchProducts());
+    
     api.get('/products/settings/announcement')
       .then(res => {
         setAnnouncement(res.data);
@@ -44,6 +55,17 @@ export default function Home() {
         } catch {}
       })
       .catch(err => console.error('Failed to load announcement banner', err));
+
+    api.get('/products/settings/explore-collections')
+      .then(res => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setCollections(res.data);
+          try {
+            localStorage.setItem('mrmobi_cached_explore_collections', JSON.stringify(res.data));
+          } catch {}
+        }
+      })
+      .catch(err => console.error('Failed to load explore collections', err));
   }, [dispatch]);
 
   const stripProductNames = ['Dry Fruits', 'Soundbars', 'Edible Seed', 'Smart Watches', 'Smart Switches'];
@@ -94,7 +116,7 @@ export default function Home() {
           <p className="text-[9px] md:text-sm text-gray-400 font-bold uppercase tracking-widest mt-0.5">Our Premium Categories</p>
         </div>
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {categories.map((category) => (
+          {collections.map((category) => (
             <CategoryCard key={category.title} {...category} onClick={() => navigate(`/products?category=${category.title}`)} />
           ))}
         </div>
