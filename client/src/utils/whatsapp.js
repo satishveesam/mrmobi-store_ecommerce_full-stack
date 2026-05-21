@@ -12,6 +12,12 @@ export function buildWhatsAppMessage(order, items) {
 }
 
 export function redirectToWhatsApp(order, items) {
+  // Sanitize the WhatsApp number: remove all spaces, +, -, or other non-digit characters
+  const cleanNumber = String(WHATSAPP_NUMBER).replace(/\D/g, '');
+  
   const message = encodeURIComponent(buildWhatsAppMessage(order, items));
-  window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+  const url = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${message}`;
+  
+  // Use window.location.assign for highly reliable mobile deep-linking
+  window.location.assign(url);
 }
