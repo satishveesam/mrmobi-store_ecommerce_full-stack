@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { LayoutDashboard, Package, ReceiptText, LogOut, Image, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, ReceiptText, LogOut, Image, Settings, Home } from 'lucide-react';
 import { logout } from '../../redux/slices/authSlice.js';
 
 const links = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/shipping', label: 'Shipping Settings', icon: Settings },
+  { to: '/admin/homepage-settings', label: 'Homepage Settings', icon: Home },
   { to: '/admin/orders', label: 'Orders', icon: ReceiptText },
   { to: '/admin/banners', label: 'Banners', icon: Image },
 ];

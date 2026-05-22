@@ -12,7 +12,8 @@ import {
   Menu,
   MessageSquare,
   PackageX,
-  Settings
+  Settings,
+  Home
 } from 'lucide-react';
 import { logout } from '../../redux/slices/authSlice.js';
 import { useState } from 'react';
@@ -21,6 +22,7 @@ const adminNavItems = [
   { to: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard },
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/shipping', label: 'Shipping Settings', icon: Settings },
+  { to: '/admin/homepage-settings', label: 'Homepage Settings', icon: Home },
   { to: '/admin/out-of-stock', label: 'Stock Alerts', icon: PackageX, badge: 'oos' },
   { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { to: '/admin/users', label: 'Users', icon: Users },

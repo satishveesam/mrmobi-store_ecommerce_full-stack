@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, Cell, PieChart, Pie 
@@ -61,6 +61,8 @@ export default function AdminDashboard() {
     { title: 'Total Orders', value: stats?.totalOrders || 0, icon: ShoppingBag, color: 'bg-blue-500', trend: '+8.2%', isUp: true },
     { title: 'Total Products', value: stats?.totalProducts || 0, icon: Package, color: 'bg-amber-500', trend: '+2.4%', isUp: true },
     { title: 'Delivered Orders', value: stats?.deliveredOrders || 0, icon: CheckCircle, color: 'bg-indigo-500', trend: '+14.2%', isUp: true },
+    { title: 'Active Users', value: stats?.totalUsers || 0, icon: Users, color: 'bg-sky-500', trend: '+6.8%', isUp: true },
+    { title: 'Canceled Orders', value: stats?.canceledOrders || 0, icon: XCircle, color: 'bg-rose-500', trend: '-4.1%', isUp: false },
   ];
 
   return (
@@ -87,7 +89,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-6">
         {statCards.map((card, i) => (
           <div key={i} className="bg-white p-3.5 sm:p-6 rounded-[1.5rem] sm:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group">
             <div className="flex items-center justify-between mb-3 sm:mb-4">

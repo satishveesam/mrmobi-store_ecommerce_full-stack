@@ -174,6 +174,14 @@ public class AdminController {
                     .filter(o -> "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .count();
 
+            long canceledOrders = orders.stream()
+                    .filter(o -> o.getStatus() != null && (
+                            "CANCELLED".equalsIgnoreCase(o.getStatus()) ||
+                            "CANCELED".equalsIgnoreCase(o.getStatus()) ||
+                            "CANCEL".equalsIgnoreCase(o.getStatus())
+                    ))
+                    .count();
+
             double totalRevenue = orders.stream()
                     .filter(o -> o.getTotalPrice() != null && "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .mapToDouble(Orders::getTotalPrice)
@@ -226,6 +234,7 @@ public class AdminController {
             dashboard.put("totalOrders", orders.size());
             dashboard.put("totalUsers", totalUsers);
             dashboard.put("deliveredOrders", deliveredOrders);
+            dashboard.put("canceledOrders", canceledOrders);
             dashboard.put("revenue", totalRevenue);
             dashboard.put("revenueData", revenueChartData);
             dashboard.put("categoryData", categoryChartData);
@@ -240,6 +249,7 @@ public class AdminController {
             errorResponse.put("totalOrders", 0);
             errorResponse.put("totalUsers", 0);
             errorResponse.put("deliveredOrders", 0);
+            errorResponse.put("canceledOrders", 0);
             errorResponse.put("revenue", 0);
             errorResponse.put("revenueData", new ArrayList<>());
             errorResponse.put("categoryData", new ArrayList<>());

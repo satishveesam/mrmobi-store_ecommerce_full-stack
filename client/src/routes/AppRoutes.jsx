@@ -24,6 +24,7 @@ import CategoryManagement from '../pages/admin/CategoryManagement.jsx';
 import AdminReviews from '../pages/admin/AdminReviews.jsx';
 import AdminOutOfStock from '../pages/admin/AdminOutOfStock.jsx';
 import ShippingManagement from '../pages/admin/ShippingManagement.jsx';
+import HomepageSettings from '../pages/admin/HomepageSettings.jsx';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, role } = useAuth();
@@ -65,6 +66,7 @@ export default function AppRoutes() {
         <Route path="reviews" element={<AdminReviews />} />
         <Route path="out-of-stock" element={<AdminOutOfStock />} />
         <Route path="shipping" element={<ShippingManagement />} />
+        <Route path="homepage-settings" element={<HomepageSettings />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
