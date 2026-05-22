@@ -115,17 +115,15 @@ export default function Checkout() {
 
     setLoading(true);
     try {
-      await Promise.all(
-        items.map((item) =>
-          orderService.placeOrder({
-            productId: Number(item.id),
-            customerName: custName,
-            mobile: custMobile,
-            address: fullAddress,
-            quantity: Number(item.quantity) || 1,
-          }),
-        ),
-      );
+      const orderPayloads = items.map((item) => ({
+        productId: Number(item.id),
+        customerName: custName,
+        mobile: custMobile,
+        address: fullAddress,
+        quantity: Number(item.quantity) || 1,
+      }));
+
+      await orderService.placeBulkOrders(orderPayloads);
 
       toast.success('Order placed successfully! 🎉');
 

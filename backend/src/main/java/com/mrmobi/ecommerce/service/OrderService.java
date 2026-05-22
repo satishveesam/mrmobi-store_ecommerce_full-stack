@@ -69,6 +69,60 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
+    public List<Orders> placeBulkOrders(List<OrderRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            throw new IllegalArgumentException("Order items list cannot be empty");
+        }
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        com.mrmobi.ecommerce.entity.User user = null;
+        if (auth != null && auth.isAuthenticated() && auth.getAuthorities() != null) {
+            boolean isUser = auth.getAuthorities().stream().anyMatch(a -> "ROLE_USER".equals(a.getAuthority()));
+            if (isUser) {
+                String email = auth.getName();
+                user = userRepository.findByEmail(email).orElse(null);
+            }
+        }
+
+        List<Orders> orders = new java.util.ArrayList<>();
+        for (OrderRequest request : requests) {
+            Product product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
+            int requestedQuantity = request.getQuantity();
+            int stock = product.getStock() == null ? 0 : product.getStock();
+            if (stock < requestedQuantity) {
+                throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
+            }
+
+            product.setStock(stock - requestedQuantity);
+            productRepository.save(product);
+
+            Orders order = new Orders();
+            order.setCustomerName(request.getCustomerName());
+            order.setMobile(request.getMobile());
+            order.setAddress(request.getAddress());
+            order.setProductName(product.getName());
+            order.setProductId(product.getId());
+            order.setQuantity(requestedQuantity);
+            order.setTotalPrice(product.getPrice() * requestedQuantity);
+
+            if (user != null) {
+                order.setUserId(user.getId());
+                user.setMobile(request.getMobile());
+                user.setAddress(request.getAddress());
+            }
+
+            orders.add(orderRepository.save(order));
+        }
+
+        if (user != null) {
+            userRepository.save(user);
+        }
+
+        return orders;
+    }
+
     public List<Orders> getOrders() {
         return orderRepository.findAll();
     }

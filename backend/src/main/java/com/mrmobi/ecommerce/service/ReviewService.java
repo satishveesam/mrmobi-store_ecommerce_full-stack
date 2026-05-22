@@ -52,11 +52,28 @@ public class ReviewService {
     }
 
     public List<Review> productReviews(Long productId) {
-        return reviewRepository.findByProductIdOrderByCreatedAtDesc(productId);
+        List<Review> reviews = reviewRepository.findByProductIdOrderByCreatedAtDesc(productId);
+        populateUserNames(reviews);
+        return reviews;
     }
 
     public List<Review> getAllReviews() {
-        return reviewRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        List<Review> reviews = reviewRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        populateUserNames(reviews);
+        return reviews;
+    }
+
+    private void populateUserNames(List<Review> reviews) {
+        for (Review r : reviews) {
+            if (r.getUserId() != null) {
+                userRepository.findById(r.getUserId()).ifPresent(u -> {
+                    r.setUserName(u.getFullName() != null && !u.getFullName().isBlank() ? u.getFullName() : "Anonymous Customer");
+                });
+            }
+            if (r.getUserName() == null) {
+                r.setUserName("Anonymous Customer");
+            }
+        }
     }
 
     @Transactional

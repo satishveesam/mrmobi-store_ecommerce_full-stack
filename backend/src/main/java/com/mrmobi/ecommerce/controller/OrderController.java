@@ -33,6 +33,12 @@ public class OrderController {
         return orderService.placeOrder(request);
     }
 
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<Orders> placeBulkOrders(@Valid @RequestBody List<OrderRequest> request) {
+        return orderService.placeBulkOrders(request);
+    }
+
     @GetMapping
     public List<Orders> getOrders() {
         return orderService.getOrders();

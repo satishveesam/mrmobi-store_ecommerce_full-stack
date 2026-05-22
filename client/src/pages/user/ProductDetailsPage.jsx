@@ -143,8 +143,11 @@ export default function ProductDetailsPage() {
                             ★
                           </span>
                         ))}
-                        <span className="text-[9px] font-black text-slate-450 ml-1.5 uppercase tracking-wide">
-                          Verified Buyer
+                        <span className="text-[9.5px] font-black text-slate-750 ml-1">
+                          {rev.userName || 'Anonymous Customer'}
+                        </span>
+                        <span className="text-[8px] font-black text-slate-400 ml-1.5 uppercase tracking-wide">
+                          • Verified Buyer
                         </span>
                       </div>
                       

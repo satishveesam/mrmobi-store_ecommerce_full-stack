@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ShoppingBag, RotateCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import { orderService } from '../../services/orderService.js';
 import { productService } from '../../services/productService.js';
@@ -34,6 +35,7 @@ const getImageUrl = (url) => {
 };
 
 export default function MyOrders() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productImages, setProductImages] = useState({});
@@ -184,7 +186,10 @@ export default function MyOrders() {
                 </div>
                 
                 {/* Product Details Info Row */}
-                <div className="flex gap-3 items-center w-full">
+                <div 
+                  onClick={() => navigate(`/product/${o.productId}`)}
+                  className="flex gap-3 items-center w-full cursor-pointer hover:bg-slate-50 p-1 rounded-xl transition active:scale-[0.99]"
+                >
                   <div className="bg-gray-100 h-14 w-14 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden border border-gray-200/50">
                     {productImages[o.productId] ? (
                       <img 
@@ -201,7 +206,7 @@ export default function MyOrders() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm text-gray-950 block w-full truncate mb-0.5">{o.productName}</h3>
+                    <h3 className="font-bold text-sm text-gray-955 block w-full truncate mb-0.5 hover:text-indigo-650 transition">{o.productName}</h3>
                     <p className="text-xs text-gray-500 font-medium">Quantity: {o.quantity}</p>
                   </div>
                 </div>
@@ -256,8 +261,13 @@ export default function MyOrders() {
               <tbody>
                 {items.map((o) => (
                   <tr key={o.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3 font-bold">#{o.id}</td>
-                    <td className="px-4 py-3">{o.productName}</td>
+                    <td className="px-4 py-3 font-bold text-slate-500">#{o.id}</td>
+                    <td 
+                      onClick={() => navigate(`/product/${o.productId}`)}
+                      className="px-4 py-3 font-semibold text-slate-855 hover:text-indigo-650 hover:underline cursor-pointer transition"
+                    >
+                      {o.productName}
+                    </td>
                     <td className="px-4 py-3">{o.quantity}</td>
                     <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(o.totalPrice)}</td>
                     <td className="px-4 py-3">
