@@ -144,7 +144,7 @@ export default function Checkout() {
 
       // Buy Now: only remove the ordered item; Normal checkout: clear full cart
       if (isBuyNow) {
-        await dispatch(removeFromCartAsync(buyNowItem.id));
+        await dispatch(removeFromCartAsync({ productId: buyNowItem.id, silent: true }));
       } else {
         await dispatch(clearCartAsync());
       }

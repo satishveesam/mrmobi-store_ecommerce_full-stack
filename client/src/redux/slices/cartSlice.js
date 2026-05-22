@@ -78,8 +78,15 @@ export const updateQuantityAsync = createAsyncThunk('cart/updateQuantity', async
   }
 });
 
-export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async (productId, { dispatch, getState, rejectWithValue }) => {
-  toast.success('Item removed from cart', { toastId: 'cart-remove-success' });
+export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async (arg, { dispatch, getState, rejectWithValue }) => {
+  const isObject = typeof arg === 'object' && arg !== null;
+  const productId = isObject ? arg.productId : arg;
+  const silent = isObject ? arg.silent : false;
+
+  if (!silent) {
+    toast.success('Item removed from cart', { toastId: 'cart-remove-success' });
+  }
+
   if (!hasToken()) {
     setTimeout(() => {
       try {

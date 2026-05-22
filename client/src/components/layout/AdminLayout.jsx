@@ -63,7 +63,7 @@ const adminNavItems = [
   { to: '/admin/shipping', label: 'Shipping Settings', icon: Settings },
   { to: '/admin/homepage-settings', label: 'Homepage Settings', icon: Home },
   { to: '/admin/out-of-stock', label: 'Stock Alerts', icon: PackageX, badge: 'oos' },
-  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag, badge: 'placed' },
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/banners', label: 'Banners', icon: ImageIcon },
   { to: '/admin/categories', label: 'Categories', icon: Tag },
@@ -80,6 +80,7 @@ export default function AdminLayout() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const orders = useSelector((state) => state.orders.items) || [];
+  const placedOrdersCount = orders.filter((o) => (o.status || '').toUpperCase() === 'PLACED').length;
   const [prevOrdersCount, setPrevOrdersCount] = useState(null);
   const [newOrderAlert, setNewOrderAlert] = useState(null);
 
@@ -183,6 +184,14 @@ export default function AdminLayout() {
                         isActive ? 'bg-white/20 text-white' : 'bg-rose-500 text-white'
                       }`}>
                         {oosCount}
+                      </span>
+                    )}
+                    {/* Orange/Yellow Placed orders notification badge */}
+                    {item.badge === 'placed' && placedOrdersCount > 0 && (
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md min-w-[16px] text-center ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-amber-500 text-slate-950'
+                      }`}>
+                        {placedOrdersCount}
                       </span>
                     )}
                     <ChevronRight className={`transition-all duration-150 shrink-0 ${
