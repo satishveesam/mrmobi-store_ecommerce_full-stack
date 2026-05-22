@@ -174,12 +174,7 @@ export default function MyOrders() {
     // 1. Must be CONFIRMED status
     if (String(order.status || '').toUpperCase() !== 'CONFIRMED') return false;
     
-    // 2. The product itself must support quick delivery
-    const product = products[order.productId];
-    const productSupportsQuick = product ? (product.quickDelivery ?? true) : true;
-    if (!productSupportsQuick) return false;
-    
-    // 3. The order's pincode must be in the whitelisted zones
+    // 2. The order's pincode must be in the whitelisted zones
     const pincode = extractPincode(order.address);
     if (!pincode) return false;
     

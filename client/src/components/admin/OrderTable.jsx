@@ -11,9 +11,15 @@ export default function OrderTable({ orders, onMarkDelivered, onMarkShipped, onM
     getQuickLocations().then(setLocations).catch(() => {});
   }, []);
 
+  const extractPincode = (addressStr) => {
+    const match = String(addressStr || '').match(/\b\d{6}\b/);
+    return match ? match[0] : null;
+  };
+
   const isQuickOrder = (addr) => {
-    const str = String(addr || '').toLowerCase();
-    return locations.some(l => str.includes(String(l.pincode).trim()));
+    const pin = extractPincode(addr);
+    if (!pin) return false;
+    return locations.some(l => String(l.pincode).trim() === pin);
   };
 
   const getStatusBadge = (s) => {
