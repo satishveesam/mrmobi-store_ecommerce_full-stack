@@ -40,6 +40,7 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [productImages, setProductImages] = useState({});
   const [products, setProducts] = useState({});
+  const [whitelistedPincodes, setWhitelistedPincodes] = useState([]);
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -90,6 +91,17 @@ export default function MyOrders() {
       const orders = Array.isArray(data) ? data : [];
       setItems(orders);
       
+      // Fetch whitelisted quick delivery locations
+      try {
+        const { data: locationsData } = await api.get('/products/settings/quick-delivery-locations');
+        const codes = Array.isArray(locationsData)
+          ? locationsData.map(loc => String(loc.pincode || '').trim())
+          : [];
+        setWhitelistedPincodes(codes);
+      } catch (locErr) {
+        console.error('Failed to fetch quick delivery locations', locErr);
+      }
+
       // Fetch images for unique product IDs
       const uniqueProductIds = [...new Set(orders.map(o => o.productId).filter(Boolean))];
       const imageMap = {};
@@ -151,6 +163,27 @@ export default function MyOrders() {
       console.error('canCancel parsing error:', e);
       return false;
     }
+  };
+
+  const extractPincode = (addressStr) => {
+    const match = String(addressStr || '').match(/\b\d{6}\b/);
+    return match ? match[0] : null;
+  };
+
+  const isEligibleForQuickDeliveryMsg = (order) => {
+    // 1. Must be CONFIRMED status
+    if (String(order.status || '').toUpperCase() !== 'CONFIRMED') return false;
+    
+    // 2. The product itself must support quick delivery
+    const product = products[order.productId];
+    const productSupportsQuick = product ? (product.quickDelivery ?? true) : true;
+    if (!productSupportsQuick) return false;
+    
+    // 3. The order's pincode must be in the whitelisted zones
+    const pincode = extractPincode(order.address);
+    if (!pincode) return false;
+    
+    return whitelistedPincodes.includes(pincode);
   };
 
   const handleCancelOrder = async (orderId) => {
@@ -238,8 +271,7 @@ export default function MyOrders() {
                 </div>
 
                 {/* 2-hour Quick Delivery Alert Ribbon */}
-                {String(o.status || '').toUpperCase() === 'CONFIRMED' && 
-                 (products[o.productId]?.quickDelivery ?? true) && (
+                {isEligibleForQuickDeliveryMsg(o) && (
                   <div className="bg-amber-50 border border-amber-250/60 rounded-xl px-3 py-2 text-[10px] font-black text-amber-800 flex items-center gap-1.5 shadow-sm">
                     <span className="text-xs shrink-0 animate-pulse">⚡</span>
                     <span>You will receive this order within 2 hours!</span>
@@ -302,8 +334,7 @@ export default function MyOrders() {
                       className="px-4 py-3 font-semibold text-slate-855 hover:text-indigo-650 hover:underline cursor-pointer transition"
                     >
                       <div>{o.productName}</div>
-                      {String(o.status || '').toUpperCase() === 'CONFIRMED' && 
-                       (products[o.productId]?.quickDelivery ?? true) && (
+                      {isEligibleForQuickDeliveryMsg(o) && (
                         <div className="mt-1.5 bg-amber-50 border border-amber-250/60 rounded-lg px-2.5 py-1 text-[9px] font-black text-amber-800 flex items-center gap-1 max-w-max shadow-sm">
                           <span className="shrink-0 animate-pulse">⚡</span>
                           <span>You will receive this order within 2 hours!</span>
