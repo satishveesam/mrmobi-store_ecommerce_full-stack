@@ -13,7 +13,8 @@ import {
   MessageSquare,
   PackageX,
   Settings,
-  Home
+  Home,
+  XCircle
 } from 'lucide-react';
 import { logout } from '../../redux/slices/authSlice.js';
 import { useState, useEffect } from 'react';
@@ -80,6 +81,7 @@ export default function AdminLayout() {
 
   const orders = useSelector((state) => state.orders.items) || [];
   const [prevOrdersCount, setPrevOrdersCount] = useState(null);
+  const [newOrderAlert, setNewOrderAlert] = useState(null);
 
   // Poll orders in background every 20 seconds
   useEffect(() => {
@@ -95,14 +97,29 @@ export default function AdminLayout() {
     if (orders.length > 0) {
       if (prevOrdersCount !== null && orders.length > prevOrdersCount) {
         playAlarmSound();
-        toast.info(`🔔 New order received! Total orders: ${orders.length}`, {
-          position: "top-right",
-          autoClose: 5000
-        });
+        const newestOrder = orders[0];
+        if (newestOrder) {
+          setNewOrderAlert({
+            id: newestOrder.id,
+            customerName: newestOrder.customerName || 'Guest Customer',
+            productName: newestOrder.productName || 'Product',
+            totalPrice: newestOrder.totalPrice || 0
+          });
+        }
       }
       setPrevOrdersCount(orders.length);
     }
   }, [orders, prevOrdersCount]);
+
+  // Auto-dismiss alert after 8 seconds
+  useEffect(() => {
+    if (newOrderAlert) {
+      const timer = setTimeout(() => {
+        setNewOrderAlert(null);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [newOrderAlert]);
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -232,6 +249,56 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Custom sliding notification banner for new orders */}
+      {newOrderAlert && (
+        <>
+          <style>{`
+            @keyframes slideIn {
+              from { transform: translateX(120%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+            .animate-slide-in {
+              animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+          `}</style>
+          <div className="fixed top-4 right-4 z-[9999] animate-slide-in max-w-sm w-full bg-slate-900 text-slate-100 rounded-2xl shadow-2xl border border-slate-800 p-4 flex flex-col gap-3 shadow-emerald-500/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Live Order Dispatch</p>
+              </div>
+              <button 
+                onClick={() => setNewOrderAlert(null)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <XCircle size={16} />
+              </button>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="p-2 bg-emerald-600/10 rounded-xl border border-emerald-500/20 text-emerald-400 shrink-0">
+                <ShoppingBag size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-black text-slate-100 truncate">New Order Received!</h4>
+                <p className="text-[11px] text-slate-400 font-bold mt-0.5 truncate">
+                  Customer: <span className="text-slate-200">{newOrderAlert.customerName}</span>
+                </p>
+                <p className="text-[10px] text-slate-500 font-semibold truncate mt-0.5">
+                  Item: {newOrderAlert.productName}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-800/80 pt-2.5 mt-1">
+              <span className="text-[10px] font-bold text-slate-500">Order ID: #{newOrderAlert.id}</span>
+              <span className="text-xs font-black text-emerald-400">₹{newOrderAlert.totalPrice?.toLocaleString()}</span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
