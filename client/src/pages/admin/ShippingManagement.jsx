@@ -6,12 +6,22 @@ import { MapPin, Trash2, Edit2, Settings, Loader2, Truck, ChevronDown, ChevronUp
 import { formatCurrency } from '../../utils/constants.js';
 
 export default function ShippingManagement() {
-  const [globalDeliveryFee, setGlobalDeliveryFee] = useState(0);
-  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
+  // 1. Initial State from Cache (loads in 0ms!)
+  const cachedSettings = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_shipping_settings');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const [globalDeliveryFee, setGlobalDeliveryFee] = useState(cachedSettings?.globalDeliveryFee || 0);
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(cachedSettings?.freeDeliveryThreshold || 0);
 
   const [savingStandard, setSavingStandard] = useState(false);
 
-  const [quickLocations, setQuickLocations] = useState([]);
+  const [quickLocations, setQuickLocations] = useState(cachedSettings?.quickLocations || []);
   const [newCityName, setNewCityName] = useState('');
   const [newPincode, setNewPincode] = useState('');
   const [newLocFee, setNewLocFee] = useState('');
@@ -19,7 +29,7 @@ export default function ShippingManagement() {
   const [editingLocationId, setEditingLocationId] = useState(null);
   const [savingLocation, setSavingLocation] = useState(false);
   const [resolvingPincode, setResolvingPincode] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cachedSettings === null);
 
   // Accordion states
   const [standardExpanded, setStandardExpanded] = useState(false);
@@ -28,14 +38,18 @@ export default function ShippingManagement() {
   const [addFormExpanded, setAddFormExpanded] = useState(false);
 
   // Announcement state
-  const [announcementActive, setAnnouncementActive] = useState(false);
-  const [announcementText, setAnnouncementText] = useState('');
-  const [announcementTheme, setAnnouncementTheme] = useState('emerald');
-  const [announcementLink, setAnnouncementLink] = useState('');
+  const [announcementActive, setAnnouncementActive] = useState(cachedSettings?.announcementActive || false);
+  const [announcementText, setAnnouncementText] = useState(cachedSettings?.announcementText || '');
+  const [announcementTheme, setAnnouncementTheme] = useState(cachedSettings?.announcementTheme || 'emerald');
+  const [announcementLink, setAnnouncementLink] = useState(cachedSettings?.announcementLink || '');
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
 
+  // Product selector and catalog list state
+  const [products, setProducts] = useState([]);
+  const [selectedProductId, setSelectedProductId] = useState('');
+
   // Explore Collections state
-  const [adminCollections, setAdminCollections] = useState([]);
+  const [adminCollections, setAdminCollections] = useState(cachedSettings?.adminCollections || []);
   const [savingCollections, setSavingCollections] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState(null);
 
@@ -43,27 +57,56 @@ export default function ShippingManagement() {
   useEffect(() => {
     const loadAllSettings = async () => {
       try {
-        setLoading(true);
-        const [feeRes, threshRes, locsRes, announRes, colRes] = await Promise.all([
+        if (!cachedSettings) {
+          setLoading(true);
+        }
+        const [feeRes, threshRes, locsRes, announRes, colRes, prodRes] = await Promise.all([
           api.get('/products/settings/global-delivery-fee'),
           api.get('/products/settings/free-delivery-threshold'),
           api.get('/products/settings/quick-delivery-locations'),
           api.get('/products/settings/announcement').catch(() => null),
-          api.get('/products/settings/explore-collections').catch(() => null)
+          api.get('/products/settings/explore-collections').catch(() => null),
+          api.get('/products').catch(() => null)
         ]);
 
-        setGlobalDeliveryFee(feeRes.data?.globalDeliveryFee || 0);
-        setFreeDeliveryThreshold(threshRes.data?.freeDeliveryThreshold || 0);
-        setQuickLocations(locsRes.data || []);
-        if (announRes && announRes.data) {
-          setAnnouncementActive(announRes.data.active || false);
-          setAnnouncementText(announRes.data.text || '');
-          setAnnouncementTheme(announRes.data.theme || 'emerald');
-          setAnnouncementLink(announRes.data.link || '');
+        const freshFee = feeRes.data?.globalDeliveryFee || 0;
+        const freshThresh = threshRes.data?.freeDeliveryThreshold || 0;
+        const freshLocs = locsRes.data || [];
+        const freshAnnounActive = announRes?.data?.active || false;
+        const freshAnnounText = announRes?.data?.text || '';
+        const freshAnnounTheme = announRes?.data?.theme || 'emerald';
+        const freshAnnounLink = announRes?.data?.link || '';
+        const freshCollections = colRes?.data || [];
+
+        setGlobalDeliveryFee(freshFee);
+        setFreeDeliveryThreshold(freshThresh);
+        setQuickLocations(freshLocs);
+        setAnnouncementActive(freshAnnounActive);
+        setAnnouncementText(freshAnnounText);
+        setAnnouncementTheme(freshAnnounTheme);
+        setAnnouncementLink(freshAnnounLink);
+        setAdminCollections(freshCollections);
+
+        if (prodRes && prodRes.data) {
+          setProducts(prodRes.data);
+          // Set initial dropdown value if URL matches /product/:id
+          const match = freshAnnounLink?.match(/\/product\/(\d+)/);
+          if (match) {
+            setSelectedProductId(match[1]);
+          }
         }
-        if (colRes && colRes.data) {
-          setAdminCollections(colRes.data);
-        }
+
+        const freshData = {
+          globalDeliveryFee: freshFee,
+          freeDeliveryThreshold: freshThresh,
+          quickLocations: freshLocs,
+          announcementActive: freshAnnounActive,
+          announcementText: freshAnnounText,
+          announcementTheme: freshAnnounTheme,
+          announcementLink: freshAnnounLink,
+          adminCollections: freshCollections
+        };
+        localStorage.setItem('mrmobi_cached_shipping_settings', JSON.stringify(freshData));
       } catch (err) {
         console.error('Failed to load shipping settings', err);
         toast.error('Failed to load configurations.');
@@ -156,11 +199,36 @@ export default function ShippingManagement() {
       ]);
       toast.success('Standard delivery settings saved!');
       setStandardExpanded(false);
+
+      const freshData = {
+        globalDeliveryFee: Number(globalDeliveryFee),
+        freeDeliveryThreshold: Number(freeDeliveryThreshold),
+        quickLocations,
+        announcementActive,
+        announcementText,
+        announcementTheme,
+        announcementLink,
+        adminCollections
+      };
+      localStorage.setItem('mrmobi_cached_shipping_settings', JSON.stringify(freshData));
     } catch (err) {
       console.error(err);
       toast.error('Failed to save settings.');
     } finally {
       setSavingStandard(false);
+    }
+  };
+
+  const handleProductSelectChange = (productId) => {
+    setSelectedProductId(productId);
+    if (productId) {
+      setAnnouncementLink(`/product/${productId}`);
+      const selectedProd = products.find(p => String(p.id) === String(productId));
+      if (selectedProd) {
+        setAnnouncementText(`🔥 Hot Deal: Buy ${selectedProd.name} now at best price!`);
+      }
+    } else {
+      setAnnouncementLink('');
     }
   };
 
@@ -175,6 +243,18 @@ export default function ShippingManagement() {
       });
       toast.success('Announcement ribbon saved successfully!');
       setAnnouncementExpanded(false);
+
+      const freshData = {
+        globalDeliveryFee,
+        freeDeliveryThreshold,
+        quickLocations,
+        announcementActive,
+        announcementText,
+        announcementTheme,
+        announcementLink,
+        adminCollections
+      };
+      localStorage.setItem('mrmobi_cached_shipping_settings', JSON.stringify(freshData));
     } catch (err) {
       console.error(err);
       toast.error('Failed to save announcement settings.');
@@ -462,7 +542,7 @@ export default function ShippingManagement() {
               </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider">
                   Ribbon Text Message
@@ -472,20 +552,47 @@ export default function ShippingManagement() {
                   placeholder="e.g. 🎉 Special Offer: Flat 10% OFF today!"
                   value={announcementText}
                   onChange={(e) => setAnnouncementText(e.target.value)}
-                  className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white"
+                  className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-800"
                 />
               </div>
 
               <div className="space-y-1">
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                  <span>Pin to Catalog Product</span>
+                  <span className="text-[7px] text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded uppercase">Quick Select</span>
+                </label>
+                <select
+                  value={selectedProductId}
+                  onChange={(e) => handleProductSelectChange(e.target.value)}
+                  className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-800"
+                >
+                  <option value="">-- Choose Product to Promote --</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} (₹{p.price})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider">
-                  Redirect Link URL (Optional)
+                  Redirect Link URL (Auto-set or Custom)
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. /products or external URL"
                   value={announcementLink}
-                  onChange={(e) => setAnnouncementLink(e.target.value)}
-                  className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white"
+                  onChange={(e) => {
+                    setAnnouncementLink(e.target.value);
+                    const match = e.target.value.match(/\/product\/(\d+)/);
+                    if (match) {
+                      setSelectedProductId(match[1]);
+                    } else {
+                      setSelectedProductId('');
+                    }
+                  }}
+                  className="w-full text-xs font-bold px-3 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-955 bg-white text-slate-800"
                 />
               </div>
             </div>
@@ -494,18 +601,22 @@ export default function ShippingManagement() {
               <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider">
                 Ribbon Theme Color Style
               </label>
-              <div className="flex gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
                   { id: 'emerald', label: 'Emerald Green', bg: 'bg-emerald-50 text-emerald-800 border-emerald-250' },
                   { id: 'indigo', label: 'Indigo Blue', bg: 'bg-indigo-50 text-indigo-800 border-indigo-250' },
                   { id: 'rose', label: 'Rose Pink', bg: 'bg-rose-50 text-rose-800 border-rose-250' },
                   { id: 'amber', label: 'Amber Gold', bg: 'bg-amber-50 text-amber-800 border-amber-250' },
+                  { id: 'purple', label: 'Royal Purple', bg: 'bg-purple-50 text-purple-800 border-purple-250' },
+                  { id: 'cyan', label: 'Ocean Cyan', bg: 'bg-cyan-50 text-cyan-800 border-cyan-250' },
+                  { id: 'crimson', label: 'Rich Crimson', bg: 'bg-red-50 text-red-800 border-red-250' },
+                  { id: 'dark', label: 'Carbon Black', bg: 'bg-slate-900 text-white border-slate-950' },
                 ].map((th) => (
                   <button
                     key={th.id}
                     type="button"
                     onClick={() => setAnnouncementTheme(th.id)}
-                    className={`flex-1 py-2 px-3 border rounded-xl text-[10px] font-black transition text-center ${th.bg} ${
+                    className={`py-2 px-3 border rounded-xl text-[10px] font-black transition text-center ${th.bg} ${
                       announcementTheme === th.id 
                         ? 'ring-2 ring-slate-950 scale-[1.03] shadow-sm' 
                         : 'opacity-65 hover:opacity-100 hover:scale-[1.01]'
@@ -525,6 +636,10 @@ export default function ShippingManagement() {
                   announcementTheme === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-805' :
                   announcementTheme === 'indigo' ? 'bg-indigo-50 border-indigo-100 text-indigo-805' :
                   announcementTheme === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-805' :
+                  announcementTheme === 'purple' ? 'bg-purple-50 border-purple-100 text-purple-800' :
+                  announcementTheme === 'cyan' ? 'bg-cyan-50 border-cyan-100 text-cyan-800' :
+                  announcementTheme === 'crimson' ? 'bg-red-50 border-red-100 text-red-800' :
+                  announcementTheme === 'dark' ? 'bg-slate-900 border-slate-950 text-white border-slate-950' :
                   'bg-emerald-50 border-emerald-100 text-emerald-805'
                 }`}>
                   <Sparkles className="w-3 h-3 animate-bounce shrink-0" />

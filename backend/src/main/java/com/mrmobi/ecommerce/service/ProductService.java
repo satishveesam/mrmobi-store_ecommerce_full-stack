@@ -91,4 +91,8 @@ public class ProductService {
         product.setQuickDelivery(request.getQuickDelivery() != null ? request.getQuickDelivery() : true);
         product.setDeliveryFee(request.getDeliveryFee() != null ? request.getDeliveryFee() : 0.0);
     }
+
+    public long countProducts() {
+        return productRepository.count();
+    }
 }

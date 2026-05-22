@@ -166,19 +166,19 @@ public class AdminController {
     @GetMapping("/dashboard")
     public Map<String, Object> dashboard() {
         try {
-            List<Product> products = productService.getProducts(null);
+            long totalProducts = productService.countProducts();
             List<Orders> orders = orderService.getOrders();
-            List<com.mrmobi.ecommerce.entity.User> users = userService.getAllUsers();
+            long totalUsers = userService.countUsers();
             
             double totalRevenue = orders.stream()
-                    .filter(o -> o.getTotalPrice() != null)
+                    .filter(o -> o.getTotalPrice() != null && "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .mapToDouble(Orders::getTotalPrice)
                     .sum();
 
-            // Aggregate Revenue Data for Charts (Last 7 Days)
+            // Aggregate Revenue Data for Charts (Last 7 Days) - DELIVERED only
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM");
             Map<String, Double> revenueByDate = orders.stream()
-                    .filter(o -> o.getCreatedAt() != null && o.getTotalPrice() != null)
+                    .filter(o -> o.getCreatedAt() != null && o.getTotalPrice() != null && "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .collect(Collectors.groupingBy(
                             o -> o.getCreatedAt().atZone(ZoneId.systemDefault()).format(formatter),
                             TreeMap::new,
@@ -218,9 +218,9 @@ public class AdminController {
                     .collect(Collectors.toList());
 
             Map<String, Object> dashboard = new LinkedHashMap<>();
-            dashboard.put("totalProducts", products.size());
+            dashboard.put("totalProducts", totalProducts);
             dashboard.put("totalOrders", orders.size());
-            dashboard.put("totalUsers", users.size());
+            dashboard.put("totalUsers", totalUsers);
             dashboard.put("revenue", totalRevenue);
             dashboard.put("revenueData", revenueChartData);
             dashboard.put("categoryData", categoryChartData);

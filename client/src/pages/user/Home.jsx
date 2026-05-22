@@ -93,10 +93,14 @@ export default function Home() {
       {announcement && announcement.active && (
         <div className="container-page mt-4 md:mt-6">
           <div className={`py-2 px-4 rounded-xl text-[10px] md:text-xs font-black tracking-wide shadow-sm flex items-center justify-center gap-1.5 border transition-all ${
-            announcement.theme === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-805' :
-            announcement.theme === 'indigo' ? 'bg-indigo-50 border-indigo-100 text-indigo-805' :
-            announcement.theme === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-805' :
-            'bg-emerald-50 border-emerald-100 text-emerald-805'
+            announcement.theme === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-800' :
+            announcement.theme === 'indigo' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' :
+            announcement.theme === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-800' :
+            announcement.theme === 'purple' ? 'bg-purple-50 border-purple-100 text-purple-800' :
+            announcement.theme === 'cyan' ? 'bg-cyan-50 border-cyan-100 text-cyan-800' :
+            announcement.theme === 'crimson' ? 'bg-red-50 border-red-100 text-red-800' :
+            announcement.theme === 'dark' ? 'bg-slate-950 border-slate-900 text-white' :
+            'bg-emerald-50 border-emerald-100 text-emerald-800'
           }`}>
             <Sparkles className="w-3.5 h-3.5 animate-bounce text-indigo-500 shrink-0" />
             <span className="text-center">{announcement.text}</span>

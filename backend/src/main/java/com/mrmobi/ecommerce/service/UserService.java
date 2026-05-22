@@ -144,4 +144,8 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    public long countUsers() {
+        return userRepository.count();
+    }
 }
