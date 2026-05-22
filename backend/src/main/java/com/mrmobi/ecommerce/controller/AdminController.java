@@ -170,6 +170,10 @@ public class AdminController {
             List<Orders> orders = orderService.getOrders();
             long totalUsers = userService.countUsers();
             
+            long deliveredOrders = orders.stream()
+                    .filter(o -> "DELIVERED".equalsIgnoreCase(o.getStatus()))
+                    .count();
+
             double totalRevenue = orders.stream()
                     .filter(o -> o.getTotalPrice() != null && "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .mapToDouble(Orders::getTotalPrice)
@@ -180,9 +184,9 @@ public class AdminController {
             Map<String, Double> revenueByDate = orders.stream()
                     .filter(o -> o.getCreatedAt() != null && o.getTotalPrice() != null && "DELIVERED".equalsIgnoreCase(o.getStatus()))
                     .collect(Collectors.groupingBy(
-                            o -> o.getCreatedAt().atZone(ZoneId.systemDefault()).format(formatter),
-                            TreeMap::new,
-                            Collectors.summingDouble(Orders::getTotalPrice)
+                             o -> o.getCreatedAt().atZone(ZoneId.systemDefault()).format(formatter),
+                             TreeMap::new,
+                             Collectors.summingDouble(Orders::getTotalPrice)
                     ));
 
             // Format for Recharts
@@ -221,6 +225,7 @@ public class AdminController {
             dashboard.put("totalProducts", totalProducts);
             dashboard.put("totalOrders", orders.size());
             dashboard.put("totalUsers", totalUsers);
+            dashboard.put("deliveredOrders", deliveredOrders);
             dashboard.put("revenue", totalRevenue);
             dashboard.put("revenueData", revenueChartData);
             dashboard.put("categoryData", categoryChartData);
@@ -234,6 +239,7 @@ public class AdminController {
             errorResponse.put("totalProducts", 0);
             errorResponse.put("totalOrders", 0);
             errorResponse.put("totalUsers", 0);
+            errorResponse.put("deliveredOrders", 0);
             errorResponse.put("revenue", 0);
             errorResponse.put("revenueData", new ArrayList<>());
             errorResponse.put("categoryData", new ArrayList<>());
@@ -244,23 +250,24 @@ public class AdminController {
 
     @PostMapping("/settings/explore-collections")
     public List<java.util.Map<String, Object>> updateExploreCollections(@org.springframework.web.bind.annotation.RequestBody List<java.util.Map<String, Object>> collections) {
-        for (java.util.Map<String, Object> col : collections) {
-            Object idObj = col.get("id");
+        int count = collections.size();
+        systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collections_count", String.valueOf(count)));
+
+        for (int i = 0; i < count; i++) {
+            java.util.Map<String, Object> col = collections.get(i);
+            int itemIndex = i + 1;
             Object titleObj = col.get("title");
             Object imageObj = col.get("image");
 
-            if (idObj != null) {
-                String idStr = idObj.toString();
-                String titleStr = titleObj != null ? titleObj.toString() : "";
-                String imageStr = imageObj != null ? imageObj.toString() : "";
+            String titleStr = titleObj != null ? titleObj.toString() : "";
+            String imageStr = imageObj != null ? imageObj.toString() : "";
 
-                systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + idStr + "_name", titleStr));
-                systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + idStr + "_image", imageStr));
-            }
+            systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + itemIndex + "_name", titleStr));
+            systemSettingRepository.save(new com.mrmobi.ecommerce.entity.SystemSetting("explore_collection_" + itemIndex + "_image", imageStr));
         }
         
         List<java.util.Map<String, Object>> updated = new java.util.ArrayList<>();
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= count; i++) {
             String name = systemSettingRepository.findById("explore_collection_" + i + "_name")
                     .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
                     .orElse("");

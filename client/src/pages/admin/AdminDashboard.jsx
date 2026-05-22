@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { Package, ShoppingBag, Users, DollarSign, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, Cell, PieChart, Pie 
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
     { title: 'Total Revenue', value: `₹${stats?.revenue?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-green-500', trend: '+12.5%', isUp: true },
     { title: 'Total Orders', value: stats?.totalOrders || 0, icon: ShoppingBag, color: 'bg-blue-500', trend: '+8.2%', isUp: true },
     { title: 'Total Products', value: stats?.totalProducts || 0, icon: Package, color: 'bg-amber-500', trend: '+2.4%', isUp: true },
-    { title: 'Active Users', value: stats?.totalUsers || 0, icon: Users, color: 'bg-indigo-500', trend: '-1.5%', isUp: false },
+    { title: 'Delivered Orders', value: stats?.deliveredOrders || 0, icon: CheckCircle, color: 'bg-indigo-500', trend: '+14.2%', isUp: true },
   ];
 
   return (

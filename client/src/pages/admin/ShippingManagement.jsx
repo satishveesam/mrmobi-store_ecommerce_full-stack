@@ -301,6 +301,26 @@ export default function ShippingManagement() {
     }
   };
 
+  const handleAddNewCollection = () => {
+    setAdminCollections(prev => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        title: '',
+        image: ''
+      }
+    ]);
+    toast.info('New collection added to configure!');
+  };
+
+  const handleRemoveCollection = (idx) => {
+    setAdminCollections(prev => {
+      const filtered = prev.filter((_, i) => i !== idx);
+      return filtered.map((col, i) => ({ ...col, id: i + 1 }));
+    });
+    toast.warning('Collection slot removed.');
+  };
+
   const handleSaveExploreCollections = async () => {
     setSavingCollections(true);
     try {
@@ -678,7 +698,7 @@ export default function ShippingManagement() {
             <Tag className="w-4 h-4 text-amber-600" />
             <div>
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider leading-none">📂 Explore Collections (Homepage)</h3>
-              <p className="text-[8px] text-slate-400 font-bold mt-0.5">Customize the 4 featured collections shown on the homepage</p>
+              <p className="text-[8px] text-slate-400 font-bold mt-0.5">Customize the featured collections shown on the homepage</p>
             </div>
           </div>
           <span className="text-slate-400 p-1 hover:text-slate-700 transition">
@@ -688,10 +708,34 @@ export default function ShippingManagement() {
 
         {collectionsExpanded && (
           <div className="p-4 border-t border-slate-100 bg-slate-50/10 animate-in slide-in-from-top-1 duration-200 space-y-4">
+            <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-150">
+              <span className="text-[10px] font-black text-slate-650 uppercase tracking-wider">Configure Dynamic Collections</span>
+              <button
+                type="button"
+                onClick={handleAddNewCollection}
+                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black transition flex items-center gap-1 shadow-sm"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Collection</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {adminCollections.map((col, idx) => (
-                <div key={col.id || idx} className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Collection {idx + 1}</span>
+                <div key={col.id || idx} className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 relative group">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Collection {idx + 1}</span>
+                    {adminCollections.length > 4 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCollection(idx)}
+                        className="text-red-500 hover:text-red-700 p-0.5 transition"
+                        title="Remove Collection"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-2">
                     <div>
                       <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Collection Name (Related Category Name)</label>
@@ -734,7 +778,7 @@ export default function ShippingManagement() {
                               </>
                             ) : (
                               <>
-                                <span>📷 Choose File</span>
+                                <span>📷 Choose Image</span>
                               </>
                             )}
                           </label>

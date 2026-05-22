@@ -124,9 +124,9 @@ export default function Home() {
           <h2 className="text-xl md:text-3xl font-black text-gray-950 tracking-tight">Explore Collections</h2>
           <p className="text-[9px] md:text-sm text-gray-400 font-bold uppercase tracking-widest mt-0.5">Our Premium Categories</p>
         </div>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {collections.map((category) => (
-            <CategoryCard key={category.title} {...category} onClick={() => navigate(`/products?category=${category.title}`)} />
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {collections.map((category, idx) => (
+            <CategoryCard key={category.title || idx} {...category} onClick={() => navigate(`/products?category=${category.title}`)} />
           ))}
         </div>
       </section>

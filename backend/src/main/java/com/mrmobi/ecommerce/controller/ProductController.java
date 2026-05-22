@@ -104,8 +104,16 @@ public class ProductController {
 
     @GetMapping("/settings/explore-collections")
     public List<java.util.Map<String, Object>> getExploreCollections() {
+        String countStr = systemSettingRepository.findById("explore_collections_count")
+                .map(com.mrmobi.ecommerce.entity.SystemSetting::getSettingValue)
+                .orElse("4");
+        int count = Integer.parseInt(countStr);
+        if (count < 4) {
+            count = 4;
+        }
+
         List<java.util.Map<String, Object>> collections = new java.util.ArrayList<>();
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= count; i++) {
             String defaultName = "";
             String defaultImg = "";
             if (i == 1) {
