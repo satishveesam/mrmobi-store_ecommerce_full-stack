@@ -37,18 +37,38 @@ export default function Checkout() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const handlePageShow = () => {
+    const checkRedirect = () => {
       const justOrdered = sessionStorage.getItem('mrmobi_just_ordered');
-      if (justOrdered === 'true') {
+      const wasHidden = sessionStorage.getItem('mrmobi_page_was_hidden');
+      
+      if (justOrdered === 'true' && wasHidden === 'true') {
         sessionStorage.removeItem('mrmobi_just_ordered');
+        sessionStorage.removeItem('mrmobi_page_was_hidden');
         window.location.replace('/my-orders');
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (sessionStorage.getItem('mrmobi_just_ordered') === 'true') {
+          sessionStorage.setItem('mrmobi_page_was_hidden', 'true');
+        }
+      } else if (document.visibilityState === 'visible') {
+        checkRedirect();
+      }
+    };
+
+    const handlePageShow = () => {
+      checkRedirect();
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pageshow', handlePageShow);
-    handlePageShow();
+    
+    checkRedirect();
 
     return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pageshow', handlePageShow);
     };
   }, []);
@@ -177,6 +197,7 @@ export default function Checkout() {
       }
 
       sessionStorage.setItem('mrmobi_just_ordered', 'true');
+      sessionStorage.setItem('mrmobi_page_was_hidden', 'false');
 
       redirectToWhatsApp({
         customerName: custName,
