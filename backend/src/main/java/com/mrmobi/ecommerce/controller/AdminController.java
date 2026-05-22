@@ -293,4 +293,12 @@ public class AdminController {
         }
         return updated;
     }
+
+    @DeleteMapping("/orders/clear-all")
+    public java.util.Map<String, String> clearAllOrders() {
+        orderService.clearAllOrders();
+        java.util.Map<String, String> response = new java.util.HashMap<>();
+        response.put("message", "All orders and user order transaction history deleted successfully");
+        return response;
+    }
 }

@@ -207,4 +207,9 @@ public class OrderService {
         order.setStatus("CANCELLED");
         return orderRepository.save(order);
     }
+
+    @Transactional
+    public void clearAllOrders() {
+        orderRepository.deleteAll();
+    }
 }
