@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CartSummary from '../../components/cart/CartSummary.jsx';
 import { orderService } from '../../services/orderService.js';
@@ -32,6 +32,7 @@ const emptyForm = {
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
 
@@ -155,6 +156,8 @@ export default function Checkout() {
         address: fullAddress,
         pincode,
       }, items);
+
+      navigate('/my-orders');
 
     } catch (error) {
       // Backend GlobalExceptionHandler returns { "status": 4xx, "error": "..." }

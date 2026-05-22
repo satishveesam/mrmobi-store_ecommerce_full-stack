@@ -18,6 +18,6 @@ export function redirectToWhatsApp(order, items) {
   const message = encodeURIComponent(buildWhatsAppMessage(order, items));
   const url = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${message}`;
   
-  // Use window.location.assign for highly reliable mobile deep-linking
-  window.location.assign(url);
+  // Open in a new tab so that the parent web app is not navigated away
+  window.open(url, '_blank');
 }
