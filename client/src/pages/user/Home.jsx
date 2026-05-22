@@ -71,22 +71,20 @@ export default function Home() {
   const stripProductNames = ['Dry Fruits', 'Soundbars', 'Edible Seed', 'Smart Watches', 'Smart Switches'];
 
   return (
-    <div className="pb-12 space-y-6 md:space-y-8 animate-in fade-in duration-300">
+    <div className="pb-12 animate-in fade-in duration-300">
       {/* Hero Section */}
-      <section>
-        <div className="container-page py-2 md:py-4">
-          <BannerCarousel />
-        </div>
+      <section className="container-page pt-2 md:pt-4">
+        <BannerCarousel />
       </section>
 
       {/* Secondary Banners */}
-      <section className="container-page">
+      <section className="container-page mt-4 md:mt-6">
          <SecondaryBanners />
       </section>
 
       {/* Announcement Banner */}
       {announcement && announcement.active && (
-        <div className="container-page">
+        <div className="container-page mt-4 md:mt-6">
           <div className={`py-2 px-4 rounded-xl text-[10px] md:text-xs font-black tracking-wide shadow-sm flex items-center justify-center gap-1.5 border transition-all ${
             announcement.theme === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-805' :
             announcement.theme === 'indigo' ? 'bg-indigo-50 border-indigo-100 text-indigo-805' :
@@ -105,12 +103,12 @@ export default function Home() {
       )}
 
       {/* Blue Product Strip */}
-      <section className="container-page">
+      <section className="container-page mt-6 md:mt-8">
          <ProductStrip />
       </section>
 
       {/* Categories */}
-      <section className="container-page">
+      <section className="container-page mt-6 md:mt-8">
         <div className="mb-6">
           <h2 className="text-xl md:text-3xl font-black text-gray-950 tracking-tight">Explore Collections</h2>
           <p className="text-[9px] md:text-sm text-gray-400 font-bold uppercase tracking-widest mt-0.5">Our Premium Categories</p>
@@ -123,7 +121,7 @@ export default function Home() {
       </section>
 
       {/* Main Product Grid */}
-      <section className="container-page">
+      <section className="container-page mt-6 md:mt-8">
         <div className="mb-6 flex items-end justify-between">
           <div>
             <h2 className="text-xl md:text-3xl font-black text-gray-950 tracking-tight">Best Sellers</h2>

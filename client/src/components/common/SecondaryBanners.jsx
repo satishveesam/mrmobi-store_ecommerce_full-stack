@@ -88,7 +88,7 @@ export default function SecondaryBanners() {
   return (
     <div 
       ref={containerRef}
-      className="-mt-6 md:mt-0 flex gap-4 overflow-x-auto no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-5 pb-2"
+      className="flex gap-4 overflow-x-auto no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-5 pb-2"
     >
       {banners.map((banner) => (
         <a 

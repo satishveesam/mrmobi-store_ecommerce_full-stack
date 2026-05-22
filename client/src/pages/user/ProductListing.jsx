@@ -10,6 +10,36 @@ function normalizeCategory(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
 
+function isFuzzyMatch(product, queryCategory) {
+  if (!queryCategory || queryCategory.toLowerCase() === 'all') return true;
+  
+  const qc = queryCategory.trim().toLowerCase();
+  
+  const pName = String(product.name || '').toLowerCase();
+  const pCat = String(product.category || '').toLowerCase();
+  const pDesc = String(product.description || '').toLowerCase();
+  const pImg = String(product.imageUrl || product.image || product.img || product.productImage || '').toLowerCase();
+
+  // 1. Direct or partial matching
+  if (pName.includes(qc) || pCat.includes(qc) || pDesc.includes(qc) || pImg.includes(qc)) {
+    return true;
+  }
+
+  // 2. Fuzzy match "even if any 4 letters match"
+  if (qc.length >= 4) {
+    for (let i = 0; i <= qc.length - 4; i++) {
+      const sub = qc.substring(i, i + 4);
+      if (sub.trim().length < 3) continue;
+      
+      if (pName.includes(sub) || pCat.includes(sub) || pDesc.includes(sub) || pImg.includes(sub)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export default function ProductListing() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -46,9 +76,7 @@ export default function ProductListing() {
 
     const data = items
       .filter((item) => {
-        if (categoryFilter === normalizeCategory('All')) return true;
-        const itemCategory = normalizeCategory(item.category);
-        return itemCategory === categoryFilter || itemCategory.replace(/\s+/g, '-') === categoryFilter;
+        return isFuzzyMatch(item, category);
       })
       .filter((item) => {
         const discount = item.discountPercentage ?? item.discountPercent ?? 0;
