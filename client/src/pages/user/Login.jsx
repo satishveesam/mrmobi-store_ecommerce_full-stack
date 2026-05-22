@@ -69,6 +69,25 @@ export default function Login() {
     event.preventDefault();
     if (!identifier || !password) return;
 
+    // Proactively request notification permission on user gesture (login click)
+    try {
+      if (typeof Notification !== 'undefined') {
+        Notification.requestPermission();
+      }
+    } catch (e) {
+      console.warn('Notification permission error:', e);
+    }
+
+    // Proactively pre-unlock Web Audio playback to bypass browser autoplay blocker
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    } catch (e) {
+      console.warn('AudioContext pre-unlock error:', e);
+    }
+
     setIsLoggingIn(true);
     const isEmail = identifier.includes('@');
     
