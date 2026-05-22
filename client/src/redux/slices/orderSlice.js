@@ -19,23 +19,37 @@ export const fetchDashboard = createAsyncThunk('orders/fetchDashboard', async (_
   }
 });
 
+const cachedItems = (() => {
+  try {
+    const data = localStorage.getItem('mrmobi_cached_orders');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+})();
+
 const orderSlice = createSlice({
   name: 'orders',
   initialState: {
-    items: [],
+    items: cachedItems,
     dashboard: null,
-    loading: false,
+    loading: cachedItems.length === 0,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchOrders.pending, (state) => {
-        state.loading = true;
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
+        try {
+          localStorage.setItem('mrmobi_cached_orders', JSON.stringify(action.payload));
+        } catch {}
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;

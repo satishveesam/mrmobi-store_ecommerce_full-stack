@@ -16,7 +16,45 @@ import {
   Home
 } from 'lucide-react';
 import { logout } from '../../redux/slices/authSlice.js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { fetchOrders } from '../../redux/slices/orderSlice.js';
+
+const playAlarmSound = () => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    
+    // Tone 1: high frequency pleasant bell
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now); // A5 note
+    osc1.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+    gain1.gain.setValueAtTime(0.15, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    
+    // Tone 2: secondary harmonic chime
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(440, now); // A4 note
+    osc2.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+    gain2.gain.setValueAtTime(0.1, now);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    
+    osc1.start(now);
+    osc1.stop(now + 0.6);
+    osc2.start(now);
+    osc2.stop(now + 0.8);
+  } catch (err) {
+    console.error('AudioContext alarm error', err);
+  }
+};
 
 const adminNavItems = [
   { to: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -39,6 +77,32 @@ export default function AdminLayout() {
   const oosCount = products.filter((p) => p.stock !== null && p.stock !== undefined && p.stock <= 0).length;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const orders = useSelector((state) => state.orders.items) || [];
+  const [prevOrdersCount, setPrevOrdersCount] = useState(null);
+
+  // Poll orders in background every 20 seconds
+  useEffect(() => {
+    dispatch(fetchOrders());
+    const interval = setInterval(() => {
+      dispatch(fetchOrders());
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
+  // Monitor order count and trigger Synthesizer Chime
+  useEffect(() => {
+    if (orders.length > 0) {
+      if (prevOrdersCount !== null && orders.length > prevOrdersCount) {
+        playAlarmSound();
+        toast.info(`🔔 New order received! Total orders: ${orders.length}`, {
+          position: "top-right",
+          autoClose: 5000
+        });
+      }
+      setPrevOrdersCount(orders.length);
+    }
+  }, [orders, prevOrdersCount]);
 
   const handleLogout = () => {
     setIsLoggingOut(true);
