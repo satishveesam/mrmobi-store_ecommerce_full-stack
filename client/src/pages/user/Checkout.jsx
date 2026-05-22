@@ -36,6 +36,14 @@ export default function Checkout() {
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    const justOrdered = sessionStorage.getItem('mrmobi_just_ordered');
+    if (justOrdered === 'true') {
+      sessionStorage.removeItem('mrmobi_just_ordered');
+      navigate('/my-orders', { replace: true });
+    }
+  }, [navigate]);
+
   // If user clicked "Buy Now" on a single item, only checkout that item
   const buyNowItem = location.state?.buyNowItem ?? null;
   const isBuyNow = !!buyNowItem;
@@ -150,14 +158,14 @@ export default function Checkout() {
         await dispatch(clearCartAsync());
       }
 
+      sessionStorage.setItem('mrmobi_just_ordered', 'true');
+
       redirectToWhatsApp({
         customerName: custName,
         mobile: custMobile,
         address: fullAddress,
         pincode,
       }, items);
-
-      navigate('/my-orders');
 
     } catch (error) {
       // Backend GlobalExceptionHandler returns { "status": 4xx, "error": "..." }
