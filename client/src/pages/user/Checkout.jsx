@@ -178,12 +178,18 @@ export default function Checkout() {
 
       sessionStorage.setItem('mrmobi_just_ordered', 'true');
 
-      redirectToWhatsApp({
-        customerName: custName,
-        mobile: custMobile,
-        address: fullAddress,
-        pincode,
-      }, items);
+      // Navigate to My Orders page synchronously to replace browser history state
+      navigate('/my-orders', { replace: true });
+
+      // Trigger the WhatsApp deep-link after a small delay to allow history update to settle
+      setTimeout(() => {
+        redirectToWhatsApp({
+          customerName: custName,
+          mobile: custMobile,
+          address: fullAddress,
+          pincode,
+        }, items);
+      }, 150);
 
     } catch (error) {
       // Backend GlobalExceptionHandler returns { "status": 4xx, "error": "..." }
