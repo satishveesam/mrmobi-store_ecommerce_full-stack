@@ -118,15 +118,33 @@ export default function MyOrders() {
     if (['CANCELLED', 'SHIPPED', 'DELIVERED'].includes(status)) return false;
     
     try {
-      let dateStr = order.createdAt;
-      if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-')) {
-        dateStr = dateStr.replace(' ', 'T') + 'Z';
+      let createdTime;
+      const rawDate = order.createdAt;
+      
+      if (typeof rawDate === 'number') {
+        createdTime = rawDate;
+      } else {
+        let dateStr = String(rawDate).trim();
+        // Standardize format: replace space with T
+        dateStr = dateStr.replace(' ', 'T');
+        
+        let parsed = new Date(dateStr);
+        if (isNaN(parsed.getTime())) {
+          // If first parse failed, try stripping Z or offsets, or parse as local
+          parsed = new Date(dateStr.replace(/-/g, '/'));
+        }
+        createdTime = parsed.getTime();
       }
-      const createdTime = new Date(dateStr).getTime();
+
+      if (isNaN(createdTime)) return false;
+
       const now = Date.now();
       const diffMinutes = (now - createdTime) / (1000 * 60);
-      return diffMinutes >= 0 && diffMinutes <= 30;
+      
+      // Cancel is allowed before 30 minutes (with a generous -5 minutes buffer for server/client clock drift)
+      return diffMinutes >= -5 && diffMinutes <= 30;
     } catch (e) {
+      console.error('canCancel parsing error:', e);
       return false;
     }
   };
