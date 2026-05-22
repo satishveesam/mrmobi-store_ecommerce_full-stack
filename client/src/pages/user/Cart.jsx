@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import CartItem from '../../components/cart/CartItem.jsx';
 import CartSummary from '../../components/cart/CartSummary.jsx';
@@ -29,6 +29,7 @@ const emptyForm = {
 export default function Cart() {
   const items = useSelector((state) => state.cart.items);
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   // Raw address objects from API
   const [addressObjects, setAddressObjects] = useState([]);
@@ -170,7 +171,15 @@ export default function Cart() {
               )}
             </div>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  toast.info('Please log in to add or select a delivery address.');
+                  sessionStorage.setItem('pendingCheckoutRedirect', 'true');
+                  navigate('/login');
+                } else {
+                  setShowModal(true);
+                }
+              }}
               className="flex-shrink-0 border border-blue-500 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-50 transition"
             >
               {selectedAddrObj ? 'Change' : 'Add Address'}
