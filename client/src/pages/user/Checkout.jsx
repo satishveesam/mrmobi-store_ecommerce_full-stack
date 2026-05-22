@@ -608,6 +608,7 @@ export default function Checkout() {
                 onPlaceOrder={handlePlaceOrder}
                 canPlaceOrder={!!selectedAddress && items.length > 0 && !loading && !hasOutOfStock}
                 deliveryPincode={selectedAddress?.pincode}
+                loading={loading}
               />
 
               {/* Selected Address Preview (shown under summary) */}
