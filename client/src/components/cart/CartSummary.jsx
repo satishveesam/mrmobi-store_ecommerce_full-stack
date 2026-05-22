@@ -177,12 +177,12 @@ export default function CartSummary({ items, isCheckout = false, onPlaceOrder, c
               <span>Opening WhatsApp...</span>
             </>
           ) : (
-            <span>Place Order Now</span>
+            <span>Confirm Order</span>
           )}
         </button>
       ) : (
-        <Link to="/checkout" className="btn-primary mt-5 w-full">
-          Checkout
+        <Link to="/checkout" className="btn-primary mt-5 w-full text-lg h-12">
+          Place Order Now
         </Link>
       )}
     </aside>

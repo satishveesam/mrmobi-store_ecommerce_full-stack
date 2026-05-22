@@ -31,7 +31,6 @@ const emptyForm = {
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
-  const [addrLoading, setAddrLoading] = useState(true);
   const location = useLocation();
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
@@ -43,9 +42,22 @@ export default function Checkout() {
     ? [{ ...buyNowItem, quantity: buyNowItem.quantity ?? 1 }]
     : cartItems;
 
+  const cachedAddresses = (() => {
+    try {
+      const data = localStorage.getItem('mrmobi_cached_addresses');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  })();
+
   // Address state
-  const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addresses, setAddresses] = useState(cachedAddresses);
+  const [addrLoading, setAddrLoading] = useState(cachedAddresses.length === 0);
+  const [selectedAddressId, setSelectedAddressId] = useState(() => {
+    const def = cachedAddresses.find((a) => a.isDefault) || cachedAddresses[0];
+    return def ? def.id : null;
+  });
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
@@ -56,6 +68,9 @@ export default function Checkout() {
     try {
       const { data } = await authService.getAddresses();
       setAddresses(data);
+      try {
+        localStorage.setItem('mrmobi_cached_addresses', JSON.stringify(data));
+      } catch {}
       // Auto-select default or first address
       const def = data.find((a) => a.isDefault) || data[0];
       if (def) setSelectedAddressId(def.id);
