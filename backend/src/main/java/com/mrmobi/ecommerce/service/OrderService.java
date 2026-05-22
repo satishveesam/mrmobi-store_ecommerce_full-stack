@@ -124,7 +124,7 @@ public class OrderService {
     }
 
     public List<Orders> getOrders() {
-        return orderRepository.findAll();
+        return orderRepository.findAllByOrderByIdDesc();
     }
 
     public List<Orders> getMyOrders() {

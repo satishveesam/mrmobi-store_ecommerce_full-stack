@@ -31,6 +31,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendWelcomeEmail(String to, String name) {
         String subject = "Welcome to MrMobi!";
         String body = "Hello " + name + ",\n\n" +
@@ -41,6 +42,7 @@ public class EmailService {
         sendEmail(to, subject, body);
     }
 
+    @Async
     public void sendPasswordResetEmail(String to, String newPassword) {
         String subject = "Your Password Has Been Reset";
         String body = "Hello,\n\n" +
@@ -52,6 +54,7 @@ public class EmailService {
         sendEmail(to, subject, body);
     }
 
+    @Async
     public void sendShipmentEmail(String to, String name, String productName, Long orderId) {
         String subject = "Your Order Has Been Shipped!";
         String body = "Hello " + name + ",\n\n" +

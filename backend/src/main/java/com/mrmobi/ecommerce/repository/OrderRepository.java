@@ -11,6 +11,8 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     boolean existsByUserIdAndProductIdAndStatus(Long userId, Long productId, String status);
 
     List<Orders> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<Orders> findAllByOrderByIdDesc();
     
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
