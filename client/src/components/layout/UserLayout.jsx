@@ -6,6 +6,7 @@ import Footer from './Footer.jsx';
 import CategoryIconBar from '../common/CategoryIconBar.jsx';
 import MobileBottomNav from './MobileBottomNav.jsx';
 import { fetchCart } from '../../redux/slices/cartSlice';
+import { fetchProducts } from '../../redux/slices/productSlice.js';
 import useAuth from '../../hooks/useAuth.js';
 
 export default function UserLayout() {
@@ -23,6 +24,14 @@ export default function UserLayout() {
       dispatch(fetchCart());
     }
   }, [token, dispatch]);
+
+  // Background polling to auto-refresh product list (keeps catalog updated in real-time)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch(fetchProducts());
+    }, 25000); // 25 seconds interval
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   const showMobileBottomNav = isAuthenticated && role !== 'ADMIN' && !['/addresses', '/login', '/signup'].includes(location.pathname);
 

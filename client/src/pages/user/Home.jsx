@@ -47,25 +47,32 @@ export default function Home() {
   useEffect(() => {
     dispatch(fetchProducts());
     
-    api.get('/products/settings/announcement')
-      .then(res => {
-        setAnnouncement(res.data);
-        try {
-          localStorage.setItem('mrmobi_cached_announcement', JSON.stringify(res.data));
-        } catch {}
-      })
-      .catch(err => console.error('Failed to load announcement banner', err));
-
-    api.get('/products/settings/explore-collections')
-      .then(res => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setCollections(res.data);
+    const fetchHomeSettings = () => {
+      api.get('/products/settings/announcement')
+        .then(res => {
+          setAnnouncement(res.data);
           try {
-            localStorage.setItem('mrmobi_cached_explore_collections', JSON.stringify(res.data));
+            localStorage.setItem('mrmobi_cached_announcement', JSON.stringify(res.data));
           } catch {}
-        }
-      })
-      .catch(err => console.error('Failed to load explore collections', err));
+        })
+        .catch(err => console.error('Failed to load announcement banner', err));
+
+      api.get('/products/settings/explore-collections')
+        .then(res => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setCollections(res.data);
+            try {
+              localStorage.setItem('mrmobi_cached_explore_collections', JSON.stringify(res.data));
+            } catch {}
+          }
+        })
+        .catch(err => console.error('Failed to load explore collections', err));
+    };
+
+    fetchHomeSettings();
+    const interval = setInterval(fetchHomeSettings, 25000);
+
+    return () => clearInterval(interval);
   }, [dispatch]);
 
   const stripProductNames = ['Dry Fruits', 'Soundbars', 'Edible Seed', 'Smart Watches', 'Smart Switches'];

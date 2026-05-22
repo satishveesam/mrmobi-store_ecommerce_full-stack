@@ -61,16 +61,28 @@ export const clearCartAsync = createAsyncThunk('cart/clearCart', async (_, { dis
   }
 });
 
+const cachedCartItems = (() => {
+  try {
+    const data = localStorage.getItem('mrmobi_cached_cart');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+})();
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
-    items: [],
+    items: cachedCartItems,
     loading: false,
     error: null,
   },
   reducers: {
     clearCart: (state) => {
       state.items = [];
+      try {
+        localStorage.removeItem('mrmobi_cached_cart');
+      } catch {}
     }
   },
   extraReducers: (builder) => {
@@ -83,6 +95,9 @@ const cartSlice = createSlice({
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
+        try {
+          localStorage.setItem('mrmobi_cached_cart', JSON.stringify(action.payload));
+        } catch {}
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
@@ -90,6 +105,9 @@ const cartSlice = createSlice({
       })
       .addCase(clearCartAsync.pending, (state) => {
         state.items = [];
+        try {
+          localStorage.removeItem('mrmobi_cached_cart');
+        } catch {}
       })
       .addCase(addToCartAsync.pending, (state, action) => {
         const { product, quantity } = action.meta.arg;
