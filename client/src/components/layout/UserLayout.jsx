@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -23,6 +23,70 @@ export default function UserLayout() {
 
   const shouldHideCategoryIconBar = isProductPage || 
                                     ['/products', '/login', '/signup'].includes(location.pathname);
+
+  // Position and Drag States for Guest Cart FAB
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // Only left click
+    setIsDragging(false);
+    dragStart.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMouseMove = (e) => {
+    setIsDragging(true);
+    setPosition({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e) => {
+    setIsDragging(false);
+    const touch = e.touches[0];
+    dragStart.current = {
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y
+    };
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const handleTouchMove = (e) => {
+    setIsDragging(true);
+    const touch = e.touches[0];
+    setPosition({
+      x: touch.clientX - dragStart.current.x,
+      y: touch.clientY - dragStart.current.y
+    });
+  };
+
+  const handleTouchEnd = () => {
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
+  };
+
+  const handleButtonClick = (e) => {
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Directly navigate without any login prompt
+    navigate('/cart');
+  };
 
   useEffect(() => {
     if (token) {
@@ -56,63 +120,66 @@ export default function UserLayout() {
       {!isAuthenticated && cartCount > 0 && (
         <>
           <style>{`
-            @keyframes guestCartFloat {
-              0% {
-                transform: translate(0, 0);
-              }
-              20% {
-                transform: translate(-30px, -140px);
-              }
-              40% {
-                transform: translate(-140px, -70px);
-              }
-              60% {
-                transform: translate(-70px, 100px);
-              }
-              80% {
-                transform: translate(-15px, -40px);
-              }
-              100% {
-                transform: translate(0, 0);
-              }
-            }
             .guest-floating-cart-btn {
               position: fixed;
               bottom: 80px;
               right: 20px;
               z-index: 99999;
-              width: 46px;
-              height: 46px;
+              width: 48px;
+              height: 48px;
               border-radius: 9999px;
-              background: linear-gradient(135deg, #2563eb, #1d4ed8);
+              background: #000000;
               color: white;
               display: flex;
               align-items: center;
               justify-content: center;
-              box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-              cursor: pointer;
-              transition: all 0.3s ease;
-              animation: guestCartFloat 20s infinite alternate ease-in-out;
-              border: 2px solid rgba(255, 255, 255, 0.4);
-            }
-            .guest-floating-cart-btn:hover {
-              animation-play-state: paused;
-              transform: scale(1.15) !important;
-              background: linear-gradient(135deg, #1d4ed8, #1e40af);
-              box-shadow: 0 12px 28px rgba(29, 78, 216, 0.6);
+              box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+              cursor: grab;
+              transition: transform 0.1s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+              border: 2px solid rgba(255, 255, 255, 0.55);
+              touch-action: none;
+              user-select: none;
             }
             .guest-floating-cart-btn:active {
-              transform: scale(0.95) !important;
+              cursor: grabbing;
+              transform: scale(0.95);
+            }
+            .guest-floating-cart-btn:hover {
+              background: #121212;
+              box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+            }
+            .guest-cart-badge {
+              position: absolute;
+              top: -4px;
+              right: -4px;
+              background-color: #dc2626;
+              color: #ffffff;
+              font-family: inherit;
+              font-size: 10px;
+              font-weight: 900;
+              border-radius: 9999px;
+              min-width: 18px;
+              height: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0 4px;
+              border: 1.5px solid #000000;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+              line-height: 1;
             }
           `}</style>
           <button
-            onClick={() => navigate('/cart')}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onClick={handleButtonClick}
+            style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
             className="guest-floating-cart-btn animate-in fade-in zoom-in duration-300"
             aria-label="View Guest Cart"
           >
-            <div className="relative">
+            <div className="relative flex items-center justify-center w-full h-full">
               <ShoppingCart size={18} className="text-white" />
-              <span className="absolute -top-3 -right-3 bg-red-600 text-white font-black text-[9px] rounded-full h-4.5 w-4.5 flex items-center justify-center border border-white shadow-sm animate-bounce">
+              <span className="guest-cart-badge">
                 {cartCount}
               </span>
             </div>
