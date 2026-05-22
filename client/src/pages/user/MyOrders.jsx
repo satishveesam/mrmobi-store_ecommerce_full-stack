@@ -39,6 +39,7 @@ export default function MyOrders() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productImages, setProductImages] = useState({});
+  const [products, setProducts] = useState({});
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -92,17 +93,20 @@ export default function MyOrders() {
       // Fetch images for unique product IDs
       const uniqueProductIds = [...new Set(orders.map(o => o.productId).filter(Boolean))];
       const imageMap = {};
+      const productMap = {};
       
       await Promise.all(uniqueProductIds.map(async (id) => {
         try {
           const res = await productService.getProduct(id);
           imageMap[id] = res.data.images?.[0] || res.data.imageUrl || res.data.imageURL || res.data.image;
+          productMap[id] = res.data;
         } catch (err) {
           console.error(`Failed to fetch product ${id}`, err);
         }
       }));
       
       setProductImages(imageMap);
+      setProducts(productMap);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Unable to load orders');
     } finally {
@@ -233,6 +237,15 @@ export default function MyOrders() {
                   </div>
                 </div>
 
+                {/* 2-hour Quick Delivery Alert Ribbon */}
+                {String(o.status || '').toUpperCase() === 'CONFIRMED' && 
+                 (products[o.productId]?.quickDelivery ?? true) && (
+                  <div className="bg-amber-50 border border-amber-250/60 rounded-xl px-3 py-2 text-[10px] font-black text-amber-800 flex items-center gap-1.5 shadow-sm">
+                    <span className="text-xs shrink-0 animate-pulse">⚡</span>
+                    <span>You will receive this order within 2 hours!</span>
+                  </div>
+                )}
+
                 {/* Footer details box: Address & Pricing */}
                 <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100/50 w-full overflow-hidden gap-2">
                   <div className="min-w-0 flex-1">
@@ -288,7 +301,14 @@ export default function MyOrders() {
                       onClick={() => navigate(`/product/${o.productId}`)}
                       className="px-4 py-3 font-semibold text-slate-855 hover:text-indigo-650 hover:underline cursor-pointer transition"
                     >
-                      {o.productName}
+                      <div>{o.productName}</div>
+                      {String(o.status || '').toUpperCase() === 'CONFIRMED' && 
+                       (products[o.productId]?.quickDelivery ?? true) && (
+                        <div className="mt-1.5 bg-amber-50 border border-amber-250/60 rounded-lg px-2.5 py-1 text-[9px] font-black text-amber-800 flex items-center gap-1 max-w-max shadow-sm">
+                          <span className="shrink-0 animate-pulse">⚡</span>
+                          <span>You will receive this order within 2 hours!</span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3">{o.quantity}</td>
                     <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(o.totalPrice)}</td>
