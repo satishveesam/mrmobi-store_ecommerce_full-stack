@@ -58,10 +58,10 @@ export default function ProductDetails({ product }) {
   const showDiscount = Number(discount) > 0 && original != null;
 
   const handleBuyNow = () => {
-    dispatch(addToCartAsync({ productId: product.id, quantity: 1, product }));
     if (!isAuthenticated) {
       toast.info('Please log in to complete your purchase.');
       sessionStorage.setItem('pendingCheckoutRedirect', 'true');
+      sessionStorage.setItem('pendingBuyNowItem', JSON.stringify({ ...product, quantity: 1 }));
       navigate('/login');
     } else {
       navigate('/checkout', { state: { buyNowItem: { ...product, quantity: 1 } } });

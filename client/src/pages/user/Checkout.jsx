@@ -37,15 +37,33 @@ export default function Checkout() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const justOrdered = sessionStorage.getItem('mrmobi_just_ordered');
-    if (justOrdered === 'true') {
-      sessionStorage.removeItem('mrmobi_just_ordered');
-      navigate('/my-orders', { replace: true });
-    }
-  }, [navigate]);
+    const handlePageShow = () => {
+      const justOrdered = sessionStorage.getItem('mrmobi_just_ordered');
+      if (justOrdered === 'true') {
+        sessionStorage.removeItem('mrmobi_just_ordered');
+        window.location.replace('/my-orders');
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    handlePageShow();
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []);
 
   // If user clicked "Buy Now" on a single item, only checkout that item
-  const buyNowItem = location.state?.buyNowItem ?? null;
+  const buyNowItem = location.state?.buyNowItem ?? (() => {
+    try {
+      const pending = sessionStorage.getItem('pendingBuyNowItem');
+      if (pending) {
+        sessionStorage.removeItem('pendingBuyNowItem');
+        return JSON.parse(pending);
+      }
+    } catch {}
+    return null;
+  })();
   const isBuyNow = !!buyNowItem;
   const items = isBuyNow
     ? [{ ...buyNowItem, quantity: buyNowItem.quantity ?? 1 }]
