@@ -95,19 +95,25 @@ export default function Login() {
       if (!isEmail) {
         redirectUrl = '/admin/dashboard';
       } else {
-        const pendingActionStr = sessionStorage.getItem('pendingCartAction');
-        if (pendingActionStr) {
-          try {
-            const pendingAction = JSON.parse(pendingActionStr);
-            sessionStorage.removeItem('pendingCartAction');
-            dispatch(addToCartAsync({ productId: pendingAction.product.id, quantity: 1 }));
-            if (pendingAction.type === 'BUY') {
-              redirectUrl = '/checkout';
-            } else {
-              redirectUrl = '/cart';
+        const isCheckoutRedirect = sessionStorage.getItem('pendingCheckoutRedirect');
+        if (isCheckoutRedirect) {
+          sessionStorage.removeItem('pendingCheckoutRedirect');
+          redirectUrl = '/checkout';
+        } else {
+          const pendingActionStr = sessionStorage.getItem('pendingCartAction');
+          if (pendingActionStr) {
+            try {
+              const pendingAction = JSON.parse(pendingActionStr);
+              sessionStorage.removeItem('pendingCartAction');
+              dispatch(addToCartAsync({ productId: pendingAction.product.id, quantity: 1 }));
+              if (pendingAction.type === 'BUY') {
+                redirectUrl = '/checkout';
+              } else {
+                redirectUrl = '/cart';
+              }
+            } catch (e) {
+              console.error(e);
             }
-          } catch (e) {
-            console.error(e);
           }
         }
       }

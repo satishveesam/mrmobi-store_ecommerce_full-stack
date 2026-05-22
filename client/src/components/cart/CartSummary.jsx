@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/constants.js';
 import api from '../../services/api.js';
+import { toast } from 'react-toastify';
 
 export default function CartSummary({ items, isCheckout = false, onPlaceOrder, canPlaceOrder = true, deliveryPincode, loading = false }) {
+  const navigate = useNavigate();
+  const isAuthenticated = (() => {
+    try {
+      return !!localStorage.getItem('mrmobi_token');
+    } catch {
+      return false;
+    }
+  })();
   const [globalDeliveryFee, setGlobalDeliveryFee] = useState(0);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
   const [quickDeliveryFee, setQuickDeliveryFee] = useState(0);
@@ -181,9 +190,20 @@ export default function CartSummary({ items, isCheckout = false, onPlaceOrder, c
           )}
         </button>
       ) : (
-        <Link to="/checkout" className="btn-primary mt-5 w-full text-lg h-12">
+        <button 
+          onClick={() => {
+            if (!isAuthenticated) {
+              toast.info('Please log in to place your order.');
+              sessionStorage.setItem('pendingCheckoutRedirect', 'true');
+              navigate('/login');
+            } else {
+              navigate('/checkout');
+            }
+          }}
+          className="btn-primary mt-5 w-full text-lg h-12 flex items-center justify-center"
+        >
           Place Order Now
-        </Link>
+        </button>
       )}
     </aside>
   );

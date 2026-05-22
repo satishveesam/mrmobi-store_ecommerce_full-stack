@@ -55,11 +55,6 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!isAuthenticated) {
-      sessionStorage.setItem('pendingCartAction', JSON.stringify({ type: 'ADD', product }));
-      navigate('/login');
-      return;
-    }
     dispatch(addToCartAsync({ productId: product.id, quantity: 1, product }));
   };
 

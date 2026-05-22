@@ -118,7 +118,11 @@ export default function MyOrders() {
     if (['CANCELLED', 'SHIPPED', 'DELIVERED'].includes(status)) return false;
     
     try {
-      const createdTime = new Date(order.createdAt).getTime();
+      let dateStr = order.createdAt;
+      if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-')) {
+        dateStr = dateStr.replace(' ', 'T') + 'Z';
+      }
+      const createdTime = new Date(dateStr).getTime();
       const now = Date.now();
       const diffMinutes = (now - createdTime) / (1000 * 60);
       return diffMinutes >= 0 && diffMinutes <= 30;

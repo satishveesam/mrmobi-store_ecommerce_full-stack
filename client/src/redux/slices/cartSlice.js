@@ -2,7 +2,27 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { toast } from 'react-toastify';
 import { cartService } from '../../services/cartService';
 
+const hasToken = () => {
+  try {
+    return !!localStorage.getItem('mrmobi_token');
+  } catch {
+    return false;
+  }
+};
+
+const getCachedItems = () => {
+  try {
+    const data = localStorage.getItem('mrmobi_cached_cart');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWithValue }) => {
+  if (!hasToken()) {
+    return getCachedItems();
+  }
   try {
     const { data } = await cartService.getCart();
     // Transform backend CartItem structure to frontend item structure
@@ -16,9 +36,18 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWi
   }
 });
 
-export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ productId, quantity, product }, { dispatch, rejectWithValue }) => {
+export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ productId, quantity, product }, { dispatch, getState, rejectWithValue }) => {
+  toast.success('Product added to cart', { toastId: 'cart-add-success' });
+  if (!hasToken()) {
+    setTimeout(() => {
+      try {
+        const state = getState();
+        localStorage.setItem('mrmobi_cached_cart', JSON.stringify(state.cart.items));
+      } catch {}
+    }, 50);
+    return { productId, quantity };
+  }
   try {
-    toast.success('Product added to cart', { toastId: 'cart-add-success' });
     await cartService.addToCart(productId, quantity);
     // Fetch fresh cart from server in background to sync
     dispatch(fetchCart());
@@ -30,7 +59,16 @@ export const addToCartAsync = createAsyncThunk('cart/addToCart', async ({ produc
   }
 });
 
-export const updateQuantityAsync = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
+export const updateQuantityAsync = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, { dispatch, getState, rejectWithValue }) => {
+  if (!hasToken()) {
+    setTimeout(() => {
+      try {
+        const state = getState();
+        localStorage.setItem('mrmobi_cached_cart', JSON.stringify(state.cart.items));
+      } catch {}
+    }, 50);
+    return { productId, quantity };
+  }
   try {
     await cartService.updateQuantity(productId, quantity);
     return { productId, quantity };
@@ -40,9 +78,18 @@ export const updateQuantityAsync = createAsyncThunk('cart/updateQuantity', async
   }
 });
 
-export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async (productId, { dispatch, rejectWithValue }) => {
+export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async (productId, { dispatch, getState, rejectWithValue }) => {
+  toast.success('Item removed from cart', { toastId: 'cart-remove-success' });
+  if (!hasToken()) {
+    setTimeout(() => {
+      try {
+        const state = getState();
+        localStorage.setItem('mrmobi_cached_cart', JSON.stringify(state.cart.items));
+      } catch {}
+    }, 50);
+    return productId;
+  }
   try {
-    toast.success('Item removed from cart', { toastId: 'cart-remove-success' });
     await cartService.removeFromCart(productId);
     return productId;
   } catch (error) {
@@ -52,6 +99,12 @@ export const removeFromCartAsync = createAsyncThunk('cart/removeFromCart', async
 });
 
 export const clearCartAsync = createAsyncThunk('cart/clearCart', async (_, { dispatch, rejectWithValue }) => {
+  if (!hasToken()) {
+    try {
+      localStorage.removeItem('mrmobi_cached_cart');
+    } catch {}
+    return null;
+  }
   try {
     await cartService.clearCart();
     return null;
