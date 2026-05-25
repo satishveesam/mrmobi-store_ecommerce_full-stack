@@ -5,7 +5,6 @@ import { Search, Filter, RefreshCw } from 'lucide-react';
 import OrderTable from '../../components/admin/OrderTable.jsx';
 import { fetchOrders } from '../../redux/slices/orderSlice.js';
 import { orderService } from '../../services/orderService.js';
-import api from '../../services/api.js';
 
 export default function Orders() {
   const dispatch = useDispatch();
@@ -86,22 +85,6 @@ export default function Orders() {
     }
   };
 
-  const handleClearAllOrders = async () => {
-    const confirmation = window.prompt("Type 'DELETE ALL' to confirm deleting all order history and customer transaction logs. This action CANNOT be undone!");
-    if (confirmation !== 'DELETE ALL') {
-      toast.info('Order deletion cancelled.');
-      return;
-    }
-
-    try {
-      await api.delete('/admin/orders/clear-all');
-      toast.success('All orders and transaction history deleted successfully!');
-      dispatch(fetchOrders());
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to clear orders');
-    }
-  };
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -110,23 +93,13 @@ export default function Orders() {
           <h1 className="text-lg font-bold tracking-tight text-slate-900">Order History</h1>
           <p className="text-xs text-slate-500 font-medium">Review and process all customer transactions.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {orders && orders.length > 0 && (
-            <button 
-              onClick={handleClearAllOrders}
-              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 rounded-lg text-[10px] sm:text-xs font-bold transition active:scale-95 flex items-center gap-1 shadow-sm uppercase tracking-wider"
-            >
-              Clear All Orders
-            </button>
-          )}
-          <button 
-            onClick={() => dispatch(fetchOrders())}
-            title="Refresh"
-            className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-emerald-600 hover:border-emerald-200 shadow-sm transition-colors flex-shrink-0"
-          >
-            <RefreshCw size={13} />
-          </button>
-        </div>
+        <button 
+          onClick={() => dispatch(fetchOrders())}
+          title="Refresh"
+          className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-emerald-600 hover:border-emerald-200 shadow-sm transition-colors flex-shrink-0"
+        >
+          <RefreshCw size={13} />
+        </button>
       </div>
 
       {/* Toolbar */}

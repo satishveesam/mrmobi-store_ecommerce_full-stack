@@ -1,7 +1,6 @@
 package com.mrmobi.ecommerce.controller;
 
 import com.mrmobi.ecommerce.entity.Orders;
-import com.mrmobi.ecommerce.entity.Product;
 import com.mrmobi.ecommerce.service.OrderService;
 import com.mrmobi.ecommerce.service.ProductService;
 import com.mrmobi.ecommerce.service.UserService;
@@ -292,13 +291,5 @@ public class AdminController {
             updated.add(c);
         }
         return updated;
-    }
-
-    @DeleteMapping("/orders/clear-all")
-    public java.util.Map<String, String> clearAllOrders() {
-        orderService.clearAllOrders();
-        java.util.Map<String, String> response = new java.util.HashMap<>();
-        response.put("message", "All orders and user order transaction history deleted successfully");
-        return response;
     }
 }
